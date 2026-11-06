@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hailey Perng — Film &amp; Photography</title>
+  <meta name="description" content="Portfolio of film and photography work by Hailey Perng.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="#top">Hailey Perng</a>
+    <nav>
+      <a href="#film">Film</a>
+      <a href="#photography">Photography</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <p class="eyebrow">Filmmaker &amp; Photographer</p>
+      <h1>Stories told in<br><em>light and motion.</em></h1>
+    </section>
+
+    <!-- FILM: each .film-card is one project. Replace the YouTube/Vimeo
+         embed URL in data-embed, or swap the whole iframe in. -->
+    <section id="film" class="section">
+      <h2>Film</h2>
+      <div class="film-grid">
+        <article class="film-card">
+          <div class="frame placeholder">Video embed</div>
+          <h3>Project Title</h3>
+          <p class="meta">Short film · 2026 · Director</p>
+          <p>A one- or two-sentence logline for this film.</p>
+        </article>
+        <article class="film-card">
+          <div class="frame placeholder">Video embed</div>
+          <h3>Project Title</h3>
+          <p class="meta">Music video · 2025 · Cinematographer</p>
+          <p>A one- or two-sentence logline for this film.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- PHOTOGRAPHY: add images to images/photography/ and list them here
+         as <a href="images/photography/x.jpg"><img src="..." alt="..."></a> -->
+    <section id="photography" class="section">
+      <h2>Photography</h2>
+      <div class="photo-grid">
+        <a class="photo placeholder tall" href="#">Photo</a>
+        <a class="photo placeholder" href="#">Photo</a>
+        <a class="photo placeholder" href="#">Photo</a>
+        <a class="photo placeholder wide" href="#">Photo</a>
+        <a class="photo placeholder" href="#">Photo</a>
+        <a class="photo placeholder tall" href="#">Photo</a>
+      </div>
+    </section>
+
+    <section id="about" class="section about">
+      <h2>About</h2>
+      <p>I'm Hailey, a filmmaker and photographer. Replace this with a short bio about your work, what draws you to it, and where you're based.</p>
+    </section>
+
+    <section id="contact" class="section contact">
+      <h2>Contact</h2>
+      <p>For collaborations and inquiries:</p>
+      <a class="email" href="mailto:hperng@usc.edu">hperng@usc.edu</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">© <span id="year">2026</span> Hailey Perng</footer>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" aria-label="Close">×</button>
+    <img alt="">
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
