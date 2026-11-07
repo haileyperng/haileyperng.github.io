@@ -457,12 +457,12 @@ html.booth-open { overflow: hidden; }
 .booth-tray .polaroid { grid-area: 1 / 1; position: relative; }
 .polaroid-img { position: relative; aspect-ratio: 1; overflow: hidden; background: #1b1b1c; }
 .polaroid-img img { width: 100%; height: 100%; object-fit: cover; }
-.polaroid figcaption { height: 64px; display: grid; place-items: center; font: 400 26px/1 "Caveat", "Bradley Hand", cursive; }
+.polaroid figcaption { height: 64px; display: grid; place-items: center; font: 400 15px/1.2 "Special Elite", "Courier New", monospace; }
 .polaroid-ph { position: absolute; inset: 0; display: grid; place-items: center; color: #8a8a8f; background: repeating-linear-gradient(135deg, #e6e6e2 0 8px, #dcdcd7 8px 16px); }
 .booth-tray .polaroid figcaption { height: auto; display: grid; gap: 6px; padding: 10px 6px 14px; text-align: center; }
-.polaroid-date { font: 400 26px/1 "Caveat", "Bradley Hand", cursive; }
-.polaroid-print { display: grid; gap: 2px; padding-top: 8px; border-top: 1px solid #dcdbd4; font: 400 10px/1.4 var(--font-mono); color: #5e6269; letter-spacing: 0.02em; }
-.polaroid-print strong { font-weight: 500; color: #0f0f10; text-transform: uppercase; letter-spacing: 0.06em; }
+.polaroid-date { font: 400 16px/1 "Special Elite", "Courier New", monospace; }
+.polaroid-print { display: grid; gap: 3px; padding-top: 8px; border-top: 1px solid #dcdbd4; font: 400 10.5px/1.4 "Special Elite", "Courier New", monospace; color: #4a4b50; }
+.polaroid-print strong { font-weight: 400; font-size: 13px; color: #0f0f10; text-transform: uppercase; letter-spacing: 0.04em; }
 .polaroid-print a { color: inherit; }
 .polaroid-print a:hover { color: #0f0f10; text-decoration: underline; }
 .polaroid-actions { position: absolute; right: 10px; bottom: 110px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
@@ -516,7 +516,7 @@ html.booth-open { overflow: hidden; }
 .booth-past-title { margin-top: 40px; }
 .booth-past { display: flex; gap: 18px; overflow-x: auto; padding: 18px 6px 24px; }
 .booth-past .polaroid { flex: none; width: 168px; padding: 9px 9px 0; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), 0 8px 18px rgba(0, 0, 0, 0.12); }
-.booth-past .polaroid figcaption { height: 42px; font-size: 19px; }
+.booth-past .polaroid figcaption { height: 42px; font-size: 12px; }
 
 .booth-flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 5; }
 .booth-flash.go { animation: booth-flash 0.8s ease-out; }

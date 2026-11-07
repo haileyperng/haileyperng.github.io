@@ -270,9 +270,9 @@ export function initBooth() {
     root.classList.remove("is-busy");
   }
 
-  // Full Polaroid for saving: photo, handwritten date, and contact info printed on the border
+  // Full Polaroid for saving: photo, typed date, and contact info printed on the border
   async function compose(photo, date) {
-    await document.fonts.load('40px "Caveat"').catch(() => {});
+    await document.fonts.load('40px "Special Elite"').catch(() => {});
     const W = 880, pad = 52, img = W - pad * 2, foot = 300, H = pad + img + foot;
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     const g = c.getContext("2d");
@@ -281,15 +281,15 @@ export function initBooth() {
     const y0 = pad + img;
     g.textAlign = "center"; g.textBaseline = "middle";
     g.fillStyle = "#2a2a2c";
-    g.font = '58px "Caveat", "Bradley Hand", cursive';
+    g.font = '44px "Special Elite", "Courier New", monospace';
     g.fillText(date, W / 2, y0 + 70);
     g.strokeStyle = "#d4d3cc"; g.lineWidth = 2;
     g.beginPath(); g.moveTo(pad + 60, y0 + 125); g.lineTo(W - pad - 60, y0 + 125); g.stroke();
     g.fillStyle = "#0f0f10";
-    g.font = '500 30px "JetBrains Mono", ui-monospace, monospace';
+    g.font = '34px "Special Elite", "Courier New", monospace';
     g.fillText(PRINT.title.toUpperCase(), W / 2, y0 + 170);
     g.fillStyle = "#5e6269";
-    g.font = '400 26px "JetBrains Mono", ui-monospace, monospace';
+    g.font = '26px "Special Elite", "Courier New", monospace';
     g.fillText(PRINT.lines.join("  ·  "), W / 2, y0 + 215);
     return c;
   }
