@@ -521,6 +521,7 @@ html.booth-open { overflow: hidden; }
 .booth-seniors-grid > div > p { color: #3a3b3f; max-width: 46ch; }
 .booth-includes { margin: 20px 0; border-top: 1px solid #d9dadc; }
 .booth-includes li { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 9px 0; border-bottom: 1px solid #d9dadc; font-size: 14px; }
+.booth-rates { display: grid; gap: 2px; }
 .booth-email { display: inline-block; font-size: clamp(20px, 2.6vw, 28px); font-weight: 500; letter-spacing: -0.02em; border-bottom: 2px solid currentColor; }
 .booth-links { display: flex; gap: 18px; margin-top: 14px; font-size: 14px; }
 .booth-links a { border-bottom: 1px solid #c8cbcf; }

@@ -62,10 +62,10 @@ export function initBooth() {
             <div>
               <p>Placeholder: a relaxed session on location around Los Angeles, made to feel like you. Bring a friend, an outfit change or two, and anything that tells your story.</p>
               <ul class="booth-includes">
-                <li><span class="label">Session</span>About 1 hour, 1–2 locations</li>
-                <li><span class="label">Gallery</span>Placeholder: 40+ edited photos, private online gallery</li>
-                <li><span class="label">Turnaround</span>Placeholder: about 2 weeks</li>
-                <li><span class="label">Rate</span>Placeholder: ask for current pricing</li>
+                <li><span class="label">Session</span>1, 2 or 3 hours</li>
+                <li><span class="label">Photos</span>80+ edited photos</li>
+                <li><span class="label">Turnaround</span>1 week</li>
+                <li><span class="label">Rate</span><span class="booth-rates"><span>1 hour · $100</span><span>2 hours · $150</span><span>3 hours · $200</span></span></li>
               </ul>
               <a class="booth-email" href="mailto:${EMAIL}?subject=${encodeURIComponent("Senior photos")}">${EMAIL}</a>
               <ul class="booth-links">
