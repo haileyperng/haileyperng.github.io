@@ -14,7 +14,7 @@ function renderHeader() {
   if (!el) return;
   const path = location.pathname;
   el.innerHTML = `
-    <a class="site-logo" href="/">Hailey Perng</a>
+    <a class="site-logo" href="/">Perng Production</a>
     <nav class="site-nav" aria-label="Main">
       ${NAV.map((n, i) => `<a href="${n.href}"${path.startsWith(n.href) ? ' aria-current="page"' : ""}><span class="nav-num">0${i + 1}</span>${n.label}</a>`).join("")}
     </nav>`;
