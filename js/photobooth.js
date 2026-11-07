@@ -14,7 +14,7 @@ import { loadJSON, esc } from "/js/data.js";
 const EMAIL = "hperng@usc.edu";
 const SITE = "haileyperng.github.io";
 // Printed on every Polaroid's bottom border
-const PRINT = { title: "Senior photos by Hailey Perng", lines: [EMAIL, SITE] };
+const PRINT = { title: "Document more memories", lines: [EMAIL, SITE] };
 const DEVELOP_MS = 5000;
 
 export function initBooth() {
