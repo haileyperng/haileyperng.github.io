@@ -1,8 +1,20 @@
-// Custom cursor: a dot that tracks the pointer and a ring that trails behind.
+// Custom cursor: a crosshair that tracks the pointer and a ring that trails behind.
 //  - Links and buttons grow the ring.
 //  - Add data-cursor-label="Watch" (any text) to an element to show that word in the ring.
-//  - Sets --mx / --my (0..1) on <html> so CSS can react to the pointer (see .float in components.css).
+//  - Elements marked data-cursor-managed set the label themselves via setCursorLabel()
+//    (used by the 3D camera, where the hovered thing changes without leaving the canvas).
+//  - Sets --mx / --my (0..1) on <html> so CSS can react to the pointer.
 // Only runs on devices with a mouse/trackpad.
+
+let ring = null;
+let label = null;
+
+export function setCursorLabel(text = "", hover = !!text) {
+  if (!ring) return;
+  ring.classList.toggle("is-hover", hover);
+  ring.classList.toggle("has-label", !!text);
+  label.textContent = text;
+}
 
 export function initCursor() {
   const root = document.documentElement;
@@ -18,8 +30,8 @@ export function initCursor() {
 
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const dot = document.createElement("div");
-  const ring = document.createElement("div");
-  const label = document.createElement("span");
+  ring = document.createElement("div");
+  label = document.createElement("span");
   dot.className = "cursor-dot";
   ring.className = "cursor-ring";
   label.className = "cursor-label";
@@ -45,10 +57,9 @@ export function initCursor() {
   })();
 
   document.addEventListener("pointerover", (e) => {
+    if (e.target.closest("[data-cursor-managed]")) return;
     const target = e.target.closest("a, button, [data-cursor-label]");
     const text = target?.closest("[data-cursor-label]")?.dataset.cursorLabel || "";
-    ring.classList.toggle("is-hover", !!target);
-    ring.classList.toggle("has-label", !!text);
-    label.textContent = text;
+    setCursorLabel(text, !!target);
   });
 }

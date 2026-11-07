@@ -22,7 +22,9 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 - `css/components.css`: header, footer, camera, browsing views, detail pages, cursor
 - `js/site.js`: runs on every page; builds the header and footer, starts the clock and cursor
 - `js/cursor.js`: crosshair cursor. Add `data-cursor-label="Word"` to any element to show a word in the ring
-- `js/camera.js`: the home page camera: which part links where (`PARTS`) and each part's drawing
+- `js/camera3d.js`: the home page's 3D exploded camera (three.js, loaded from a CDN via the import map in `index.html`).
+  `SECTIONS` sets which part links where and what its callout says; each part is built from simple shapes below it
+- `js/camera.js`: 2D drawing of the camera, used automatically if a browser can't run 3D
 - `js/discovery.js`: Grid / List / Explore views, filters and shuffle for Film and Photography
 - `js/lightbox.js`: full-size photo viewer on series pages
 - `js/data.js`: helpers for loading the JSON content
