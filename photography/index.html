@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photography — Hailey Perng</title>
+  <meta name="description" content="Photography by Hailey Perng.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <script type="module" src="/js/site.js"></script>
+</head>
+<body data-page="photography" data-section="photo">
+  <header class="site-header" data-site-header></header>
+
+  <main id="top">
+    <section class="page-head">
+      <p class="label">02 · Aperture</p>
+      <h1>Photography</h1>
+      <p class="page-intro">Placeholder intro: a sentence or two about your photography. Series come from data/photos.json.</p>
+    </section>
+
+    <section class="discovery" data-discovery>
+      <div class="discovery-controls">
+        <div class="seg" data-filters aria-label="Filter by subject"></div>
+        <div class="seg">
+          <span class="label" data-count></span>
+          <div class="seg" data-views aria-label="View">
+            <button class="chip" data-view="grid">Grid</button>
+            <button class="chip" data-view="list">List</button>
+            <button class="chip" data-view="scatter">Explore</button>
+          </div>
+          <button class="chip" data-shuffle>Shuffle</button>
+        </div>
+      </div>
+      <div class="discovery-stage" data-stage></div>
+    </section>
+  </main>
+
+  <footer class="site-footer" data-site-footer></footer>
+
+  <script type="module">
+    import { loadJSON } from "/js/data.js";
+    import { initDiscovery } from "/js/discovery.js";
+
+    const series = await loadJSON("/data/photos.json");
+    initDiscovery({
+      root: document.querySelector("[data-discovery]"),
+      items: series,
+      hrefFor: (s) => `/photography/series.html?id=${encodeURIComponent(s.id)}`,
+      metaFor: (s) => `${s.location} · ${s.camera}`,
+      cursorLabel: "View",
+      storageKey: "view:photography",
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+/* ==========================================================================
+   Components: shared layout pieces and page sections.
+   ========================================================================== */
+
+/* ---------- Header / nav (markup injected by js/site.js) ---------- */
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  height: var(--header-h);
+  padding: 0 var(--gutter);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.site-logo { font-weight: 600; letter-spacing: -0.01em; }
+.site-nav { display: flex; gap: clamp(14px, 3vw, 32px); }
+.site-nav a { font: 500 12px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.site-nav a:hover, .site-nav a[aria-current="page"] { color: var(--fg); }
+.site-nav a[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 5px; }
+.site-nav .nav-num { color: var(--silver-3); margin-right: 6px; }
+
+/* ---------- Footer (markup injected by js/site.js) ---------- */
+.site-footer {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  padding: 24px var(--gutter);
+  border-top: 1px solid var(--line);
+}
+.site-footer > :nth-child(2) { text-align: center; }
+.site-footer > :last-child { text-align: right; }
+
+@media (max-width: 560px) {
+  .site-header { flex-wrap: wrap; height: auto; padding-block: 12px; gap: 10px; }
+  .site-nav { width: 100%; justify-content: space-between; }
+  .site-footer { grid-template-columns: 1fr; }
+  .site-footer > * { text-align: left !important; }
+}
+
+/* ---------- Placeholder box: swap for real media later ---------- */
+.ph {
+  display: grid; place-items: center;
+  aspect-ratio: var(--ar, 4 / 3);
+  width: 100%;
+  padding: 8px;
+  background:
+    repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg, var(--silver-1), var(--bg));
+  border: 1px solid var(--silver-2);
+  border-radius: 2px;
+  font: 500 10px/1.3 var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.08em; text-align: center;
+  color: var(--muted);
+}
+.media { aspect-ratio: var(--ar, 4 / 3); width: 100%; object-fit: cover; }
+
+/* ---------- Page heading ---------- */
+.page-head { padding: clamp(40px, 8vw, 96px) var(--gutter) 32px; }
+.page-head h1 { font-size: clamp(44px, 9vw, 128px); letter-spacing: -0.04em; margin: 12px 0 20px; }
+.page-head .label { color: var(--fg); }
+.page-intro { max-width: 52ch; color: var(--muted); font-size: 17px; }
+
+/* ---------- Home: exploded camera (js/camera.js) ---------- */
+.home-intro {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px;
+  padding: clamp(24px, 4vw, 48px) var(--gutter) 0;
+}
+.home-title { font-size: clamp(48px, 9vw, 132px); line-height: 0.9; letter-spacing: -0.05em; margin-top: 10px; }
+.home-title span { color: var(--silver-3); }
+.home-note { max-width: 36ch; color: var(--muted); }
+
+/* The stage reads like a technical drawing sheet: grid, title block, assembly lines */
+.camera {
+  position: relative;
+  height: clamp(520px, 76vh, 820px);
+  margin-top: 24px;
+  container-type: size;
+  overflow: hidden;
+  border-block: 1px solid var(--line);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center center;
+}
+.camera-toggle { position: absolute; right: var(--gutter); bottom: 16px; z-index: 50; background: var(--bg); }
+.camera-hint { position: absolute; left: var(--gutter); bottom: 20px; }
+.camera-fig { position: absolute; left: var(--gutter); top: 16px; }
+.camera-rev { position: absolute; right: var(--gutter); top: 16px; text-align: right; }
+
+/* Assembly lines from the body to each part (drawn by js/camera.js) */
+.camera-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 0.6s; }
+.camera.is-exploded .camera-lines { opacity: 1; transition-delay: 1s; }
+.camera-lines line { stroke: var(--silver-3); stroke-width: 1; stroke-dasharray: 10 4 2 4; vector-effect: non-scaling-stroke; }
+.camera-lines .axis { stroke: var(--silver-2); stroke-dasharray: 2 6; }
+.camera-lines circle { fill: var(--bg); stroke: var(--steel); stroke-width: 1; vector-effect: non-scaling-stroke; }
+
+/* Every part sits at the center, then moves from its assembled spot (--ax, --ay)
+   to its exploded spot (--x, --y) as --t goes 0 → 1. */
+.part {
+  --u: min(1cqw, 1.75cqh);
+  --t: 0;
+  position: absolute; left: 50%; top: 50%;
+  width: calc(var(--w) * var(--u));
+  z-index: var(--z, 1);
+  transform:
+    translate(-50%, -50%)
+    translate(
+      calc(var(--ax, 0) * var(--u) + (var(--x) - var(--ax, 0) * var(--u)) * var(--t)),
+      calc(var(--ay, 0) * var(--u) + (var(--y) - var(--ay, 0) * var(--u)) * var(--t))
+    )
+    rotate(calc(var(--r, 0deg) * var(--t)));
+  transition: transform 1.3s var(--ease) calc(var(--i, 0) * 60ms);
+}
+.camera.is-exploded .part { --t: 1; }
+
+/* Cursor parallax: --depth sets how far each part drifts */
+.part-inner {
+  display: flex; flex-direction: column; align-items: center;
+  transform: translate(
+    calc((var(--mx, 0.5) - 0.5) * var(--depth, 30) * -1px * var(--t)),
+    calc((var(--my, 0.5) - 0.5) * var(--depth, 30) * -1px * var(--t))
+  );
+  transition: transform 0.6s var(--ease);
+}
+.part svg { display: block; width: 100%; height: auto; overflow: visible; transition: transform 0.4s var(--ease); }
+a.part:hover svg, a.part:focus-visible svg, .part--body:hover svg { transform: scale(1.07) rotate(-3deg); }
+
+.part-caption {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  margin-top: 10px; white-space: nowrap; text-align: center;
+  rotate: calc(var(--r, 0deg) * var(--t) * -1); /* keep text upright */
+  opacity: 0; transform: translateY(-8px);
+  transition: opacity 0.4s, transform 0.4s var(--ease);
+}
+.camera.is-exploded .part-caption { opacity: 1; transform: none; transition-delay: 0.9s; }
+.part-caption strong { font-size: clamp(16px, 1.8vw, 24px); font-weight: 600; letter-spacing: -0.02em; }
+a.part:hover .part-caption strong { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
+
+/* Spinning bits: gears always turn; lens ring and aperture blades turn on hover */
+.spin, .spin-hover { transform-box: fill-box; transform-origin: center; }
+.spin { animation: spin var(--speed, 12s) linear infinite; }
+.spin-rev { animation-direction: reverse; }
+.spin-hover { animation: spin 3s linear infinite paused; }
+a.part:hover .spin-hover, a.part:focus-visible .spin-hover { animation-play-state: running; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin, .spin-hover { animation: none; } }
+
+/* Part sizes (--w, in --u units), assembled spots (--ax/--ay) and exploded spots (--x/--y) */
+.part--body       { --w: 30; --z: 3;                     --x: 0cqw;   --y: 0cqh;   --depth: 12; }
+.part--lens       { --w: 15; --z: 6; --ax: 0;   --ay: 2;   --x: -30cqw; --y: 9cqh;   --r: -8deg; --depth: 40; }
+.part--aperture   { --w: 13; --z: 5; --ax: 0;   --ay: 2;   --x: 31cqw;  --y: 11cqh;  --r: 10deg; --depth: 50; }
+.part--viewfinder { --w: 11; --z: 4; --ax: 0;   --ay: -11; --x: -4cqw;  --y: -32cqh; --r: -6deg; --depth: 30; }
+.part--flash      { --w: 8;  --z: 4; --ax: 9;   --ay: -12; --x: 24cqw;  --y: -29cqh; --r: 12deg; --depth: 60; }
+.part--gear-a     { --w: 9;  --z: 1; --ax: -5;  --ay: 0;   --x: -17cqw; --y: -27cqh; --depth: 70; }
+.part--gear-b     { --w: 7;  --z: 1; --ax: 5;   --ay: 2;   --x: 14cqw;  --y: 33cqh;  --depth: 80; }
+.part--gear-c     { --w: 5;  --z: 1; --ax: 8;   --ay: -3;  --x: -40cqw; --y: -28cqh; --depth: 90; }
+.part--roll       { --w: 9;  --z: 1; --ax: -8;  --ay: 1;   --x: -12cqw; --y: 35cqh;  --r: -18deg; --depth: 55; }
+.part--screw-a    { --w: 2;  --z: 1; --ax: 12;  --ay: 6;   --x: 41cqw;  --y: -10cqh; --depth: 100; }
+.part--screw-b    { --w: 2;  --z: 1; --ax: -12; --ay: 6;   --x: -44cqw; --y: 34cqh;  --depth: 100; }
+
+@media (max-width: 700px) {
+  .camera { height: clamp(560px, 150vw, 760px); }
+  .part--body       { --w: 44; }
+  .part--lens       { --w: 30; --ax: 0;   --ay: 3;   --x: -24cqw; --y: 25cqh; }
+  .part--aperture   { --w: 26; --ax: 0;   --ay: 3;   --x: 25cqw;  --y: 21cqh; }
+  .part--viewfinder { --w: 22; --ax: 0;   --ay: -16; --x: -22cqw; --y: -32cqh; }
+  .part--flash      { --w: 17; --ax: 13;  --ay: -17; --x: 24cqw;  --y: -31cqh; }
+  .part--gear-a     { --w: 16; --ax: -8;  --x: 36cqw;  --y: -4cqh; }
+  .part--gear-b     { --w: 12; --ax: 8;   --x: 2cqw;   --y: 39cqh; }
+  .part--gear-c     { --w: 10; --ax: 10;  --x: -38cqw; --y: 3cqh; }
+  .part--roll       { --w: 16; --ax: -10; --x: -28cqw; --y: -13cqh; }
+  .part--screw-a    { --w: 4;  --x: 40cqw;  --y: 37cqh; }
+  .part--screw-b    { --w: 4;  --x: -41cqw; --y: 13cqh; }
+  .camera-hint, .camera-rev { display: none; }
+}
+
+/* ---------- Discovery: filter + view switcher for collections ---------- */
+.discovery-controls {
+  position: sticky; top: var(--header-h); z-index: 10;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  padding: 12px var(--gutter);
+  background: var(--bg);
+  border-block: 1px solid var(--line);
+}
+.seg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.chip {
+  padding: 6px 11px;
+  border: 1px solid var(--line); border-radius: 999px;
+  font: 500 11px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.chip:hover { border-color: var(--fg); }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+@media (max-width: 560px) { .discovery-controls { position: static; } }
+
+.discovery-stage { padding: var(--gutter); }
+
+/* Grid view */
+.view-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 40px 20px; align-items: start; }
+.card { display: block; }
+.card-media { overflow: hidden; }
+.card-media > * { transition: transform 0.5s var(--ease); }
+.card:hover .card-media > * { transform: scale(1.03); }
+.card-info { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.card-title { font-weight: 500; }
+
+/* List view */
+.view-list { padding-top: 0; }
+.row {
+  display: grid; grid-template-columns: 3rem 1fr auto 4rem; align-items: baseline; gap: 16px;
+  padding: 18px 0; border-bottom: 1px solid var(--line);
+  transition: padding 0.3s var(--ease);
+}
+.row:hover { padding-left: 12px; background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.row-title { font-size: clamp(20px, 3vw, 36px); letter-spacing: -0.02em; }
+.row > :last-child { text-align: right; }
+@media (max-width: 560px) { .row { grid-template-columns: 2rem 1fr auto; } .row-meta { display: none; } }
+.list-preview {
+  position: fixed; top: 0; left: 0; z-index: 30;
+  width: 240px; pointer-events: none;
+  opacity: 0; transition: opacity 0.2s;
+}
+.list-preview.is-visible { opacity: 1; }
+
+/* Explore (scatter) view: drag items around */
+.view-scatter { position: relative; height: max(80vh, 640px); margin: var(--gutter); padding: 0; overflow: hidden; border: 1px dashed var(--line); }
+.scatter-item { position: absolute; width: clamp(130px, 17vw, 230px); touch-action: none; user-select: none; -webkit-user-drag: none; }
+.scatter-item.is-dragging { z-index: 999 !important; }
+.scatter-item .card-info { margin-top: 6px; }
+.scatter-hint { position: absolute; bottom: 12px; left: 12px; }
+
+/* ---------- Detail pages (film project / photo series) ---------- */
+.detail { padding-bottom: 64px; }
+.detail-media { padding: 0 var(--gutter); }
+.detail-media iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
+.detail-body { display: grid; grid-template-columns: minmax(200px, 1fr) 2fr; gap: 40px var(--gutter); padding: 48px var(--gutter); }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; align-content: start; }
+.facts dd { font-size: 14px; }
+.prose { max-width: 62ch; font-size: 17px; }
+.prose p + p { margin-top: 1em; }
+.section-title { padding: 0 var(--gutter); margin-bottom: 16px; }
+.stills { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 16px; padding: 0 var(--gutter); }
+.masonry { columns: 3 260px; column-gap: 16px; padding: 0 var(--gutter); }
+.masonry > * { break-inside: avoid; margin-bottom: 16px; display: block; }
+.pager { display: flex; justify-content: space-between; gap: 16px; margin-top: 64px; padding: 24px var(--gutter) 0; border-top: 1px solid var(--line); }
+.pager a { display: flex; flex-direction: column; gap: 4px; font-size: 20px; }
+.pager a:last-child { text-align: right; }
+@media (max-width: 700px) { .detail-body { grid-template-columns: 1fr; } }
+
+/* ---------- About ---------- */
+.about-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 40px var(--gutter); padding: 0 var(--gutter) 64px; }
+.about-sections { display: grid; gap: 40px; margin-top: 48px; }
+.entry { display: grid; grid-template-columns: 1fr 2fr auto; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 700px) { .about-grid { grid-template-columns: 1fr; } .entry { grid-template-columns: 1fr auto; } .entry > :nth-child(2) { grid-row: 2; grid-column: 1 / -1; color: var(--muted); } }
+
+/* ---------- Contact ---------- */
+.contact-big { display: inline-block; padding: 0 var(--gutter); font-size: clamp(32px, 7vw, 96px); letter-spacing: -0.04em; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; word-break: break-word; }
+.contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px var(--gutter); padding: 64px var(--gutter); }
+.contact-grid li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+
+/* ---------- Custom cursor (js/cursor.js) ---------- */
+.has-custom-cursor, .has-custom-cursor * { cursor: none !important; }
+.cursor-dot, .cursor-ring { position: fixed; top: 0; left: 0; z-index: 1000; pointer-events: none; transition: opacity 0.2s; }
+/* Crosshair dot */
+.cursor-dot {
+  width: 15px; height: 15px; margin: -7px 0 0 -7px;
+  background:
+    linear-gradient(var(--fg), var(--fg)) center / 1px 100% no-repeat,
+    linear-gradient(var(--fg), var(--fg)) center / 100% 1px no-repeat;
+}
+.cursor-ring::before {
+  content: ""; position: absolute; left: -16px; top: -16px; width: 32px; height: 32px;
+  border: 1px solid var(--accent); border-radius: 50%;
+  transition: transform 0.3s var(--ease), background 0.3s;
+}
+.cursor-ring.is-hover::before { transform: scale(1.5); background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.cursor-ring.has-label::before { transform: scale(2.6); background: var(--accent); }
+.cursor-label {
+  position: absolute; transform: translate(-50%, -50%);
+  font: 500 10px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+  color: var(--on-accent); opacity: 0; transition: opacity 0.2s;
+}
+.cursor-ring.has-label .cursor-label { opacity: 1; }
+.cursor-out .cursor-dot, .cursor-out .cursor-ring { opacity: 0; }
+
+/* ---------- Lightbox (js/lightbox.js) ---------- */
+.lightbox { position: fixed; inset: 0; z-index: 900; display: grid; place-items: center; padding: 48px var(--gutter); background: rgba(20, 20, 20, 0.94); }
+.lightbox[hidden] { display: none; }
+.lightbox img { max-width: 100%; max-height: 85vh; object-fit: contain; }
+.lightbox-close { position: absolute; top: 16px; right: var(--gutter); color: #fff; }
+
+/* ---------- Misc ---------- */
+.empty { padding: 64px var(--gutter); color: var(--muted); }

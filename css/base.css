@@ -1,0 +1,77 @@
+/* ==========================================================================
+   Base: design tokens, reset, typography.
+   Change the look of the whole site from the :root block below.
+   ========================================================================== */
+
+:root {
+  /* Palette: black, white and silver */
+  --white: #f4f4f2;
+  --ink: #0f0f10;
+  --silver-1: #e6e7e9;
+  --silver-2: #c8cbcf;
+  --silver-3: #9a9ea5;
+  --steel: #5e6269;
+
+  /* Roles */
+  --bg: var(--white);
+  --fg: var(--ink);
+  --muted: var(--steel);
+  --line: #d9dadc;
+  --surface: var(--silver-1);
+  --grid: rgba(15, 15, 16, 0.05);
+  --accent: var(--ink);        /* highlight color (selected chips, cursor) */
+  --on-accent: var(--white);   /* text on top of --accent */
+
+  /* Type */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+  /* Layout */
+  --gutter: clamp(16px, 4vw, 48px);
+  --header-h: 56px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Per-section overrides can go here, keyed by <body data-section="film|photo|about|contact"> */
+
+*, *::before, *::after { box-sizing: border-box; }
+body, h1, h2, h3, p, figure, dl, dd, ul, ol { margin: 0; }
+ul, ol { list-style: none; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.55 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+main { flex: 1; }
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+h1, h2, h3 { font-weight: 500; letter-spacing: -0.02em; line-height: 1.05; }
+
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+
+/* Small mono uppercase text used for metadata, numbering and UI */
+.label {
+  font: 500 11px/1.4 var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

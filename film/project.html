@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Film — Hailey Perng</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <script type="module" src="/js/site.js"></script>
+</head>
+<body data-page="film-project" data-section="film">
+  <header class="site-header" data-site-header></header>
+
+  <!-- One template for every film. Content comes from data/films.json, picked by ?id= -->
+  <main id="top" class="detail" data-detail></main>
+
+  <footer class="site-footer" data-site-footer></footer>
+
+  <script type="module">
+    import { loadJSON, esc, mediaHTML, getParam } from "/js/data.js";
+
+    const films = await loadJSON("/data/films.json");
+    const main = document.querySelector("[data-detail]");
+    const i = films.findIndex((f) => f.id === getParam("id"));
+
+    if (i === -1) {
+      main.innerHTML = `<p class="empty">Film not found. <a href="/film/">Back to all films →</a></p>`;
+    } else {
+      const f = films[i];
+      const prev = films[(i - 1 + films.length) % films.length];
+      const next = films[(i + 1) % films.length];
+      document.title = `${f.title} — Hailey Perng`;
+
+      main.innerHTML = `
+        <section class="page-head">
+          <p class="label"><a href="/film/">Film</a> / ${esc(f.type)} · ${esc(f.year)}</p>
+          <h1>${esc(f.title)}</h1>
+          <p class="page-intro">${esc(f.logline)}</p>
+        </section>
+
+        <div class="detail-media">
+          ${f.embed
+            ? `<iframe src="${esc(f.embed)}" title="${esc(f.title)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`
+            : `<div class="ph" style="--ar:16/9">Video embed (Vimeo / YouTube)</div>`}
+        </div>
+
+        <div class="detail-body">
+          <dl class="facts">
+            <dt class="label">Role</dt><dd>${esc(f.role)}</dd>
+            <dt class="label">Year</dt><dd>${esc(f.year)}</dd>
+            <dt class="label">Runtime</dt><dd>${esc(f.runtime)}</dd>
+            <dt class="label">Format</dt><dd>${esc(f.format)}</dd>
+            ${f.credits.map(([k, v]) => `<dt class="label">${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}
+          </dl>
+          <div class="prose">${f.synopsis.map((p) => `<p>${esc(p)}</p>`).join("")}</div>
+        </div>
+
+        <h2 class="label section-title">Stills</h2>
+        <div class="stills">
+          ${f.stills.map((src, n) => mediaHTML({ src, alt: `${f.title} still ${n + 1}`, aspect: "16 / 9", label: `Still ${n + 1}` })).join("")}
+        </div>
+
+        <nav class="pager" aria-label="More films">
+          <a href="/film/project.html?id=${encodeURIComponent(prev.id)}"><span class="label">← Previous</span>${esc(prev.title)}</a>
+          <a href="/film/project.html?id=${encodeURIComponent(next.id)}"><span class="label">Next →</span>${esc(next.title)}</a>
+        </nav>`;
+    }
+  </script>
+</body>
+</html>

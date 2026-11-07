@@ -1,0 +1,107 @@
+[
+  {
+    "id": "series-one",
+    "title": "Series One",
+    "year": 2026,
+    "location": "Los Angeles",
+    "camera": "35mm film",
+    "tags": ["street"],
+    "aspect": "4 / 5",
+    "thumbnail": null,
+    "description": "Placeholder: a few sentences about this series.",
+    "images": [
+      { "src": null, "alt": "", "aspect": "4 / 5" },
+      { "src": null, "alt": "", "aspect": "3 / 2" },
+      { "src": null, "alt": "", "aspect": "4 / 5" },
+      { "src": null, "alt": "", "aspect": "1 / 1" },
+      { "src": null, "alt": "", "aspect": "3 / 2" },
+      { "src": null, "alt": "", "aspect": "4 / 5" }
+    ]
+  },
+  {
+    "id": "series-two",
+    "title": "Series Two",
+    "year": 2025,
+    "location": "Place",
+    "camera": "Digital",
+    "tags": ["portrait"],
+    "aspect": "3 / 4",
+    "thumbnail": null,
+    "description": "Placeholder: a few sentences about this series.",
+    "images": [
+      { "src": null, "alt": "", "aspect": "3 / 4" },
+      { "src": null, "alt": "", "aspect": "3 / 4" },
+      { "src": null, "alt": "", "aspect": "4 / 3" },
+      { "src": null, "alt": "", "aspect": "3 / 4" }
+    ]
+  },
+  {
+    "id": "series-three",
+    "title": "Series Three",
+    "year": 2025,
+    "location": "Place",
+    "camera": "Medium format",
+    "tags": ["travel"],
+    "aspect": "1 / 1",
+    "thumbnail": null,
+    "description": "Placeholder: a few sentences about this series.",
+    "images": [
+      { "src": null, "alt": "", "aspect": "1 / 1" },
+      { "src": null, "alt": "", "aspect": "1 / 1" },
+      { "src": null, "alt": "", "aspect": "1 / 1" },
+      { "src": null, "alt": "", "aspect": "1 / 1" },
+      { "src": null, "alt": "", "aspect": "1 / 1" }
+    ]
+  },
+  {
+    "id": "series-four",
+    "title": "Series Four",
+    "year": 2024,
+    "location": "Place",
+    "camera": "35mm film",
+    "tags": ["street", "travel"],
+    "aspect": "3 / 2",
+    "thumbnail": null,
+    "description": "Placeholder: a few sentences about this series.",
+    "images": [
+      { "src": null, "alt": "", "aspect": "3 / 2" },
+      { "src": null, "alt": "", "aspect": "2 / 3" },
+      { "src": null, "alt": "", "aspect": "3 / 2" },
+      { "src": null, "alt": "", "aspect": "3 / 2" }
+    ]
+  },
+  {
+    "id": "series-five",
+    "title": "Series Five",
+    "year": 2024,
+    "location": "Place",
+    "camera": "Digital",
+    "tags": ["event"],
+    "aspect": "4 / 5",
+    "thumbnail": null,
+    "description": "Placeholder: a few sentences about this series.",
+    "images": [
+      { "src": null, "alt": "", "aspect": "4 / 5" },
+      { "src": null, "alt": "", "aspect": "3 / 2" },
+      { "src": null, "alt": "", "aspect": "4 / 5" }
+    ]
+  },
+  {
+    "id": "series-six",
+    "title": "Series Six",
+    "year": 2023,
+    "location": "Place",
+    "camera": "35mm film",
+    "tags": ["portrait"],
+    "aspect": "2 / 3",
+    "thumbnail": null,
+    "description": "Placeholder: a few sentences about this series.",
+    "images": [
+      { "src": null, "alt": "", "aspect": "2 / 3" },
+      { "src": null, "alt": "", "aspect": "2 / 3" },
+      { "src": null, "alt": "", "aspect": "3 / 2" },
+      { "src": null, "alt": "", "aspect": "2 / 3" },
+      { "src": null, "alt": "", "aspect": "2 / 3" }
+    ]
+  }
+]
