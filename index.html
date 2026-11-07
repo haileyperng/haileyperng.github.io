@@ -30,35 +30,43 @@
         <p class="label">Filmmaker &amp; Photographer · Los Angeles</p>
         <h1 class="home-title">Hailey Perng<span>.</span></h1>
       </div>
-      <p class="home-note">Placeholder intro line. Each piece of this camera opens part of my work. Hover a piece, or click the body to put it back together.</p>
+      <p class="home-note">Placeholder intro line. Click the camera to step into the Photo Booth, follow a callout to my work, or hit Build it and put the camera together yourself.</p>
     </section>
 
     <!-- Exploded camera: 3D model from js/camera3d.js, with the 2D drawing (js/camera.js) as fallback -->
     <section class="camera" data-camera aria-label="Sections">
       <p class="label camera-fig">Fig. 1 — Exploded assembly</p>
-      <p class="label camera-rev">Dwg. HP-001 · Rev. B<br>Scale 1:1</p>
-      <p class="label camera-hint">Hover a part · drag to rotate</p>
+      <p class="label camera-rev">Dwg. HP-6700 · Rev. C<br>Scale 1:1</p>
+      <p class="label camera-hint">Click the camera · drag to rotate</p>
       <p class="label camera-loading" data-camera-loading>Loading model…</p>
-      <button class="chip camera-toggle" type="button" data-camera-toggle>Assemble</button>
+      <div class="camera-actions">
+        <button class="chip" type="button" data-booth-open data-cursor-label="Smile">Photo Booth</button>
+        <button class="chip" type="button" data-camera-build>Build it</button>
+        <button class="chip" type="button" data-camera-toggle>Assemble</button>
+      </div>
+      <p class="camera-done" aria-live="polite">Assembled. <button type="button" data-booth-open>Open the Photo Booth →</button></p>
     </section>
   </main>
 
   <footer class="site-footer" data-site-footer></footer>
 
   <script type="module">
+    import { initBooth } from "/js/photobooth.js";
+    const booth = initBooth();
     const stage = document.querySelector("[data-camera]");
     let ok = false;
     try {
       // Canvas text (engravings) needs the fonts loaded first
       await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
       const { initCamera3D } = await import("/js/camera3d.js");
-      ok = initCamera3D(stage);
+      ok = initCamera3D(stage, { onActivate: () => setTimeout(booth.open, 180) });
     } catch (err) {
       console.warn("3D camera unavailable, using 2D drawing", err);
     }
     if (!ok) {
       const { initCamera } = await import("/js/camera.js");
       initCamera(stage);
+      stage.querySelector("[data-camera-build]")?.remove();
     }
     stage.querySelector("[data-camera-loading]")?.remove();
   </script>

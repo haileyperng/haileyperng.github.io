@@ -1,11 +1,12 @@
-// Home page: a 3D exploded camera, rendered like a CAD assembly drawing.
+// Home page: a 3D exploded mirrorless camera (a6700-style body, E-mount lens, hot-shoe flash),
+// rendered like a CAD assembly drawing.
 //
-//  - Each section is a real sub-assembly: Lens → Film, Aperture → Photography,
-//    Viewfinder prism → About, Flash → Contact. Click a part (or its label) to open it.
-//  - Parts slide apart along their assembly axes; dashed lines show where they came from.
-//  - Hovering a part shows what it does: lens elements spread, iris closes, prism lifts,
-//    flash fires. Gears always turn.
-//  - Move the cursor to tilt, drag to rotate, click the body to assemble / explode.
+//  - Explore mode: parts float apart along their assembly axes; dashed lines show where they
+//    came from. Callouts link to sections (Lens → Film, LCD → Photography, Viewfinder → About,
+//    Flash → Photo Booth). Clicking the camera itself opens the Photo Booth (options.onActivate).
+//  - Build mode: parts scatter and you put the camera together, one step at a time. Click a
+//    part (or its tag) to install it. When every step is done the flash fires.
+//  - Move the cursor to tilt, drag to rotate.
 //
 // Returns false if WebGL isn't available so the page can fall back to the 2D drawing.
 
@@ -15,21 +16,33 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { setCursorLabel } from "/js/cursor.js";
 
 export const SECTIONS = {
-  lens:     { href: "/film/",        num: "01", part: "Lens assy.",  title: "Film",        blurb: "Moving images" },
-  aperture: { href: "/photography/", num: "02", part: "Iris diaphragm", title: "Photography", blurb: "Still frames" },
-  prism:    { href: "/about/",       num: "03", part: "Pentaprism",  title: "About",       blurb: "How I see" },
-  flash:    { href: "/contact/",     num: "04", part: "Flash unit",  title: "Contact",     blurb: "Send a signal" },
+  lens:   { href: "/film/",        num: "01", part: "Lens · E-mount",  title: "Film",        blurb: "Moving images" },
+  screen: { href: "/photography/", num: "02", part: "Vari-angle LCD",  title: "Photography", blurb: "Still frames" },
+  evf:    { href: "/about/",       num: "03", part: "Viewfinder",      title: "About",       blurb: "How I see" },
+  flash:  { href: "#booth",        num: "04", part: "Flash · hot shoe", title: "Photo Booth", blurb: "Portraits & bookings", booth: true },
 };
 
-// Where each label sits relative to its part on screen (px), desktop / phone
+// Build mode: the order the checklist suggests (any order works)
+export const STEPS = [
+  { id: "battery", name: "Battery",            note: "Into the grip" },
+  { id: "card",    name: "Memory card",        note: "Side slot" },
+  { id: "screws",  name: "Base screws ×3",     note: "M2 × 4" },
+  { id: "screen",  name: "Vari-angle LCD",     note: "Hinge, left side" },
+  { id: "evf",     name: "Viewfinder module",  note: "OLED + eyepiece" },
+  { id: "dials",   name: "Mode dial & shutter", note: "Top plate" },
+  { id: "lens",    name: "Lens",               note: "Align dots, twist" },
+  { id: "flash",   name: "Flash",              note: "Slide into shoe" },
+];
+
+// Where each callout sits relative to its part on screen (px), desktop / phone
 const LABEL_OFFSET = {
-  lens:     [[70, 60], [-20, 70]],
-  aperture: [[-200, 90], [-120, 80]],
-  prism:    [[-210, -60], [-130, -70]],
-  flash:    [[60, -70], [-10, -90]],
+  lens:   [[40, 50], [-30, 60]],
+  screen: [[50, 40], [-40, 50]],
+  evf:    [[60, -40], [10, -60]],
+  flash:  [[-230, -40], [-140, -40]],
 };
 
-export function initCamera3D(stage) {
+export function initCamera3D(stage, { onActivate = () => {} } = {}) {
   const probe = document.createElement("canvas");
   if (!(probe.getContext("webgl2") || probe.getContext("webgl"))) return false;
 
@@ -40,7 +53,7 @@ export function initCamera3D(stage) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.1;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const canvas = renderer.domElement;
@@ -59,16 +72,16 @@ export function initCamera3D(stage) {
   key.position.set(-5, 10, 7);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 40 });
+  Object.assign(key.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
   key.shadow.bias = -0.0004;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xffffff, 0.8);
+  const rim = new THREE.DirectionalLight(0xffffff, 1.0);
   rim.position.set(6, 3, -8);
   scene.add(rim);
 
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.12 }));
   floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -4.2;
+  floor.position.y = -4.4;
   floor.receiveShadow = true;
   scene.add(floor);
 
@@ -78,189 +91,305 @@ export function initCamera3D(stage) {
   /* ---------------------------------------------------------------- model */
   const pivot = new THREE.Group();          // rotates with cursor / drag
   const model = new THREE.Group();          // offset so the exploded model is centered
-  model.position.set(0.3, -0.75, -2.2);
+  model.position.set(-0.45, -0.35, -1.6);
   pivot.add(model);
   scene.add(pivot);
 
-  const partsRoot = new THREE.Group();      // everything clickable / raycastable
+  const partsRoot = new THREE.Group();      // everything raycastable
   const linesRoot = new THREE.Group();      // assembly lines
   model.add(partsRoot, linesRoot);
 
-  const movers = [];                        // { obj, home, offset, delay }
-  const addMover = (obj, home, offset, delay = 0) => {
+  // A mover slides between home (assembled, p = 0) and home + offset (exploded, p = 1)
+  const movers = [];
+  const addMover = (obj, home, offset, { delay = 0, step = null } = {}) => {
     obj.position.copy(home);
+    obj.userData.step = step;
     partsRoot.add(obj);
-    movers.push({ obj, home: home.clone(), offset: offset.clone(), delay });
-    // assembly line from home to exploded position
     const g = new THREE.BufferGeometry().setFromPoints([home, home.clone().add(offset)]);
-    const line = new THREE.Line(g, M.line);
+    const line = new THREE.Line(g, M.line.clone());
     line.computeLineDistances();
     linesRoot.add(line);
+    const m = { obj, home: home.clone(), offset: offset.clone(), delay, step, p: 0, target: 0, at: 0, pending: 0, line };
+    movers.push(m);
+    return m;
   };
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
-  // Body core (black leatherette) with lens mount
+  /* Body ---------------------------------------------------------------
+     Units ≈ 29 mm. Lens axis at x 0.35, y -0.1. +z is the front, +x the camera's left. */
   const body = new THREE.Group();
   body.userData.kind = "body";
-  const core = mesh(new RoundedBoxGeometry(4.2, 1.7, 1.2, 4, 0.1), M.leather);
-  body.add(core);
-  const mount = mesh(cyl(0.86, 0.12), M.aluBright);
-  mount.rotation.x = Math.PI / 2; mount.position.z = 0.64;
-  const throat = mesh(cyl(0.66, 0.13), M.black);
-  throat.rotation.x = Math.PI / 2; throat.position.z = 0.65;
-  body.add(mount, throat);
-  for (const sx of [-1, 1]) {
-    const lug = mesh(new THREE.BoxGeometry(0.08, 0.2, 0.14), M.steel);
-    lug.position.set(sx * 2.13, 0.55, 0);
-    body.add(lug);
+  body.add(mesh(new RoundedBoxGeometry(4.2, 2.3, 1.3, 5, 0.16), M.shell));
+  const topCap = mesh(new RoundedBoxGeometry(4.22, 0.34, 1.32, 4, 0.12), M.gunmetal); topCap.position.y = 1.0; body.add(topCap);
+  // grip (camera's right, so -x) and rear thumb rest
+  const grip = mesh(new RoundedBoxGeometry(1.08, 2.26, 1.0, 6, 0.34), M.leather); grip.position.set(-1.56, -0.01, 0.82); body.add(grip);
+  const thumb = mesh(new RoundedBoxGeometry(0.8, 0.55, 0.22, 4, 0.08), M.rubber); thumb.position.set(-1.6, 0.72, -0.7); body.add(thumb);
+  // E-mount: bright flange, black throat, sensor
+  const flangeRing = mesh(annulus(0.8, 1.0, 0.08), M.aluBright); flangeRing.rotation.x = Math.PI / 2; flangeRing.position.set(0.35, -0.1, 0.68); body.add(flangeRing);
+  const throat = mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.42, 72, 1, true), M.blackInside); throat.rotation.x = Math.PI / 2; throat.position.set(0.35, -0.1, 0.45); body.add(throat);
+  const sensorFrame = mesh(new THREE.BoxGeometry(1.0, 0.72, 0.04), M.steel); sensorFrame.position.set(0.35, -0.1, 0.25); body.add(sensorFrame);
+  const sensor = mesh(new THREE.PlaneGeometry(0.81, 0.54), M.sensor); sensor.position.set(0.35, -0.1, 0.275); body.add(sensor);
+  for (let k = 0; k < 3; k++) {   // bayonet tabs
+    const tab = mesh(new THREE.BoxGeometry(0.34, 0.06, 0.05), M.aluBright);
+    const a = (k / 3) * Math.PI * 2 + 0.4;
+    tab.position.set(0.35 + Math.cos(a) * 0.76, -0.1 + Math.sin(a) * 0.76, 0.64);
+    tab.rotation.z = a + Math.PI / 2;
+    body.add(tab);
   }
-  addMover(body, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0));
+  const release = mesh(cyl(0.11, 0.08, 32), M.steel); release.rotation.x = Math.PI / 2; release.position.set(-0.78, -0.5, 0.68); body.add(release);
+  const afLamp = mesh(cyl(0.08, 0.05, 24), M.lamp); afLamp.rotation.x = Math.PI / 2; afLamp.position.set(-0.95, 0.72, 0.67); body.add(afLamp);
+  const badge = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.25), M.badge); badge.position.set(1.55, 0.78, 0.656); body.add(badge);
+  // top: hot shoe, C1 and record buttons, engraved name
+  const shoe = mesh(new THREE.BoxGeometry(0.66, 0.04, 0.6), M.steel); shoe.position.set(0.35, 1.18, -0.05); body.add(shoe);
+  for (const sx of [-1, 1]) { const rail = mesh(new THREE.BoxGeometry(0.06, 0.06, 0.6), M.steel); rail.position.set(0.35 + sx * 0.3, 1.21, -0.05); body.add(rail); }
+  const c1 = mesh(cyl(0.09, 0.06, 32), M.steel); c1.position.set(-0.98, 1.19, -0.3); body.add(c1);
+  const rec = mesh(cyl(0.09, 0.06, 32), M.black); rec.position.set(-0.98, 1.19, 0.05); body.add(rec);
+  const recRing = mesh(annulus(0.09, 0.115, 0.05), M.red); recRing.position.set(-0.98, 1.19, 0.05); body.add(recRing);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.16), M.engraving); plate.rotation.x = -Math.PI / 2; plate.position.set(1.25, 1.172, 0.35); body.add(plate);
+  // rear: control wheel, buttons
+  const wheel = mesh(annulus(0.2, 0.34, 0.06), M.aluBright); wheel.rotation.x = Math.PI / 2; wheel.position.set(-1.55, -0.35, -0.67); body.add(wheel);
+  const ok = mesh(cyl(0.16, 0.05, 32), M.black); ok.rotation.x = Math.PI / 2; ok.position.set(-1.55, -0.35, -0.68); body.add(ok);
+  [[-1.25, 0.25], [-1.85, 0.25], [-1.25, -0.9], [-1.85, -0.9]].forEach(([x, y]) => {
+    const b = mesh(cyl(0.07, 0.05, 24), M.black); b.rotation.x = Math.PI / 2; b.position.set(x, y, -0.67); body.add(b);
+  });
+  // strap lugs, tripod socket
+  for (const sx of [-1, 1]) { const lug = mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 24), M.steel); lug.rotation.y = Math.PI / 2; lug.position.set(sx * 2.12, 0.78, 0); body.add(lug); }
+  const socket = mesh(annulus(0.05, 0.14, 0.03), M.steel); socket.position.set(0.35, -1.16, 0); body.add(socket);
+  addMover(body, V(0, 0, 0), V(0, 0, 0));
 
-  // Top plate with dials and engraved name
-  const top = new THREE.Group();
-  top.userData.kind = "body";
-  top.add(mesh(new RoundedBoxGeometry(4.3, 0.46, 1.3, 4, 0.09), M.alu));
-  const speedDial = knurledDial(0.36, 0.2, M.aluBright, M.steel); speedDial.position.set(1.3, 0.33, 0); top.add(speedDial);
-  const rewind = knurledDial(0.3, 0.26, M.black, M.steel); rewind.position.set(-1.45, 0.36, 0); top.add(rewind);
-  const button = mesh(cyl(0.11, 0.12), M.steel); button.position.set(1.85, 0.3, 0.32); top.add(button);
-  const plate = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.26), M.engraving);
-  plate.position.set(-0.35, 0, 0.651); top.add(plate);
-  addMover(top, new THREE.Vector3(0, 1.08, 0), new THREE.Vector3(0, 0.9, 0), 0.05);
+  /* Battery + door: drop out of the grip */
+  const battery = mesh(new RoundedBoxGeometry(0.72, 1.6, 0.86, 3, 0.05), M.battery);
+  const bm = addMover(battery, V(-1.56, -0.3, 0.75), V(0, -2.7, 0.2), { delay: 0.05, step: "battery" });
+  bm.obj.userData.anchor = V(0, -0.8, 0.43);
+  const door = mesh(new THREE.BoxGeometry(0.98, 0.05, 1.0), M.shell); door.userData.step = "battery";
+  addMover(door, V(-1.56, -1.17, 0.78), V(0, -1.35, 0.2), { delay: 0.0, step: "battery" });
 
-  // Bottom plate + screws
-  const bottom = mesh(new RoundedBoxGeometry(4.3, 0.3, 1.3, 4, 0.08), M.alu);
-  bottom.userData.kind = "body";
-  addMover(bottom, new THREE.Vector3(0, -0.99, 0), new THREE.Vector3(0, -1.0, 0), 0.05);
-  [[-1.6, 0.35], [1.6, 0.35], [-1.6, -0.35], [1.6, -0.35]].forEach(([x, z], i) => {
-    const s = screw(M);
-    addMover(s, new THREE.Vector3(x, -1.15, z), new THREE.Vector3(0, -1.9, 0), 0.12 + i * 0.03);
+  /* SD card: slides out of the side slot */
+  const card = mesh(new THREE.BoxGeometry(0.06, 0.83, 1.1), M.card);
+  addMover(card, V(-1.95, -0.25, 0.1), V(-1.9, 0, 0), { delay: 0.1, step: "card" });
+
+  /* Base screws */
+  [[1.5, 0.3], [-0.9, 0.35], [1.5, -0.35]].forEach(([x, z], i) => {
+    addMover(screw(M), V(x, -1.17, z), V(0, -1.6, 0), { delay: 0.12 + i * 0.04, step: "screws" });
   });
 
-  // 01 Lens assembly → Film
+  /* 02 Vari-angle LCD → Photography. Pivot at the hinge on the camera's left (+x). */
+  const screen = sectionGroup("screen");
+  const panel = mesh(new RoundedBoxGeometry(2.75, 1.62, 0.14, 3, 0.06), M.shell); panel.position.x = -1.38;
+  const display = new THREE.Mesh(new THREE.PlaneGeometry(2.52, 1.42), M.display); display.rotation.y = Math.PI; display.position.set(-1.38, 0, -0.072);
+  const hinge = mesh(cyl(0.06, 1.2, 24), M.steel);
+  screen.add(panel, display, hinge);
+  screen.userData.anchor = V(-1.38, 0.5, 0);
+  const screenMover = addMover(screen, V(2.0, -0.3, -0.73), V(0.35, -0.1, -0.5), { delay: 0.15, step: "screen" });
+
+  /* 03 Viewfinder module → About: eyecup, eyepiece optics, OLED panel strung along the axis */
+  const evf = sectionGroup("evf");
+  const eyecup = mesh(new RoundedBoxGeometry(0.95, 0.62, 0.32, 4, 0.1), M.rubber); eyecup.position.z = -0.16;
+  const eyeGlass = mesh(new THREE.PlaneGeometry(0.5, 0.34), M.darkGlass); eyeGlass.rotation.y = Math.PI; eyeGlass.position.z = -0.325;
+  const eyeLens = mesh(lensElement(0.24, 0.07, 0.02), M.glass); eyeLens.rotation.x = Math.PI / 2;
+  const oled = new THREE.Group();
+  const oledFrame = mesh(new THREE.BoxGeometry(0.5, 0.36, 0.06), M.steel);
+  const oledFace = mesh(new THREE.PlaneGeometry(0.4, 0.28), M.oled); oledFace.rotation.y = Math.PI; oledFace.position.z = -0.031;
+  oled.add(oledFrame, oledFace);
+  evf.add(eyecup, eyeGlass, eyeLens, oled);
+  evf.userData.anchor = V(0.4, 0.3, -0.2);
+  const evfMover = addMover(evf, V(1.45, 0.8, -0.66), V(0.25, 0.35, -1.5), { delay: 0.2, step: "evf" });
+
+  /* Mode dial + shutter assembly: lift off the top plate */
+  const modeDial = knurledDial(0.3, 0.2, M.black, M.aluBright);
+  addMover(modeDial, V(-0.45, 1.27, -0.2), V(0, 0.85, 0), { delay: 0.1, step: "dials" });
+  const shutter = new THREE.Group();
+  const collar = mesh(annulus(0.13, 0.3, 0.07), M.gunmetal);
+  const lever = mesh(new THREE.BoxGeometry(0.22, 0.06, 0.1), M.gunmetal); lever.position.set(0.32, 0, 0.12); lever.rotation.y = -0.6;
+  const button = mesh(cyl(0.12, 0.1, 40), M.aluBright); button.position.y = 0.06;
+  const frontDial = knurl(0.28, 0.08, 40, M.black); frontDial.position.set(0.2, -0.12, -0.38);
+  shutter.add(collar, lever, button, frontDial);
+  addMover(shutter, V(-1.56, 1.2, 0.95), V(0, 1.15, 0.1), { delay: 0.15, step: "dials" });
+
+  /* 01 Lens → Film: built along +y, then pointed along +z */
   const lens = sectionGroup("lens");
-  const lensAxis = new THREE.Group(); lensAxis.rotation.x = Math.PI / 2; lens.add(lensAxis); // build along +y, point along +z
-  const flange = mesh(cyl(0.82, 0.12), M.aluBright); flange.position.y = 0.06;
-  const apRing = mesh(cyl(0.77, 0.14), M.alu); apRing.position.y = 0.2;
-  const barrel = mesh(cyl(0.72, 1.1), M.black); barrel.position.y = 0.72;
-  const focus = knurl(0.79, 0.5, 80, M.rubber); focus.position.y = 0.66;
+  const lensAxis = new THREE.Group(); lensAxis.rotation.x = Math.PI / 2; lens.add(lensAxis);
+  const lFlange = mesh(cyl(0.98, 0.1), M.aluBright); lFlange.position.y = 0.05;
+  const lBase = mesh(cyl(1.0, 0.36), M.black); lBase.position.y = 0.28;
+  const focusRing = knurl(1.03, 0.32, 96, M.rubber); focusRing.position.y = 0.62;
+  const lMid = mesh(cyl(1.0, 0.12), M.black); lMid.position.y = 0.84;
+  const zoomRing = knurl(1.06, 0.7, 110, M.rubber); zoomRing.position.y = 1.26;
+  const lFront = mesh(cyl(1.0, 0.36), M.black); lFront.position.y = 1.79;
   const frontRing = new THREE.Group();
-  const fr = mesh(cyl(0.8, 0.14), M.black); frontRing.add(fr);
-  const ringText = new THREE.Mesh(new THREE.RingGeometry(0.56, 0.79, 96), M.lensText);
-  ringText.rotation.x = -Math.PI / 2; ringText.position.y = 0.071; frontRing.add(ringText);
-  frontRing.position.y = 1.34;
-  lensAxis.add(flange, apRing, barrel, focus, frontRing);
+  frontRing.add(mesh(annulus(0.7, 1.0, 0.12), M.black));
+  const ringText = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.98, 96), M.lensText);
+  ringText.rotation.x = -Math.PI / 2; ringText.position.y = 0.061; frontRing.add(ringText);
+  frontRing.position.y = 2.03;
+  const mountDot = mesh(new THREE.SphereGeometry(0.04, 12, 12), M.white); mountDot.position.set(0, 0.28, -1.0);
+  lensAxis.add(lFlange, lBase, focusRing, lMid, zoomRing, lFront, frontRing, mountDot);
   const elements = [
-    { r: 0.48, s: 0.16, e: 0.04, y: 0.5, to: 2.15 },
-    { r: 0.52, s: 0.12, e: 0.03, y: 0.85, to: 2.6 },
-    { r: 0.56, s: 0.2, e: 0.04, y: 1.15, to: 3.1 },
+    { r: 0.62, s: 0.16, e: 0.04, y: 0.5, to: 2.6 },
+    { r: 0.66, s: 0.13, e: 0.03, y: 1.1, to: 3.1 },
+    { r: 0.7, s: 0.22, e: 0.04, y: 1.9, to: 3.7 },
   ].map((d) => {
     const el = mesh(lensElement(d.r, d.s, d.e), M.glass);
-    el.castShadow = false;
     el.position.y = d.y;
     lensAxis.add(el);
     return { el, ...d };
   });
-  lens.userData.anchor = new THREE.Vector3(0.8, 0.2, 1.6);
-  addMover(lens, new THREE.Vector3(0, 0, 0.64), new THREE.Vector3(0, 0, 2.0), 0.15);
+  lens.userData.anchor = V(0.95, 0.4, 2.0);
+  const lensMover = addMover(lens, V(0.35, -0.1, 0.68), V(0, 0, 2.0), { delay: 0.25, step: "lens" });
 
-  // 02 Iris diaphragm → Photography
-  const aperture = sectionGroup("aperture");
-  const irisAxis = new THREE.Group(); irisAxis.rotation.x = Math.PI / 2; aperture.add(irisAxis);
-  irisAxis.add(mesh(annulus(0.5, 0.8, 0.1), M.aluBright));
-  const cover = mesh(annulus(0.63, 0.8, 0.03), M.alu); cover.position.y = 0.07; irisAxis.add(cover);
-  const blades = [];
-  for (let k = 0; k < 9; k++) {
-    const hinge = new THREE.Group();
-    hinge.rotation.y = (k / 9) * Math.PI * 2;
-    const blade = mesh(new THREE.BoxGeometry(0.66, 0.012, 0.3), k % 2 ? M.bladeA : M.bladeB);
-    blade.position.set(0, 0.02 + k * 0.003, 0.6);
-    hinge.add(blade);
-    irisAxis.add(hinge);
-    blades.push(blade);
-  }
-  aperture.userData.anchor = new THREE.Vector3(0, -0.85, 0);
-  addMover(aperture, new THREE.Vector3(0, 0, 0.7), new THREE.Vector3(0, 0, 0.95), 0.1);
-
-  // 03 Pentaprism housing → About
-  const prism = sectionGroup("prism");
-  const housing = mesh(prismGeometry(1.0), M.alu);
-  const eyepiece = mesh(cyl(0.22, 0.3), M.rubber); eyepiece.rotation.x = Math.PI / 2; eyepiece.position.set(0, 0.32, -0.78);
-  const shoe = mesh(new THREE.BoxGeometry(0.52, 0.05, 0.44), M.steel); shoe.position.y = 0.75;
-  const housingGroup = new THREE.Group(); housingGroup.add(housing, eyepiece, shoe);
-  const prismGlass = mesh(prismGeometry(0.72), M.glass); prismGlass.castShadow = false;
-  prism.add(housingGroup, prismGlass);
-  prism.userData.anchor = new THREE.Vector3(0, 0.6, 0);
-  addMover(prism, new THREE.Vector3(0, 1.31, 0), new THREE.Vector3(0, 2.5, 0), 0.2);
-
-  // 04 Flash unit → Contact
+  /* 04 Flash (speedlight on the multi-interface shoe) → Photo Booth */
   const flash = sectionGroup("flash");
-  const foot = mesh(new THREE.BoxGeometry(0.5, 0.1, 0.42), M.steel); foot.position.y = 0.05;
-  const fBody = mesh(new RoundedBoxGeometry(0.95, 0.75, 0.7, 3, 0.06), M.black); fBody.position.y = 0.5;
-  const fHead = mesh(new RoundedBoxGeometry(1.15, 0.56, 0.86, 3, 0.06), M.alu); fHead.position.y = 1.15;
-  const fresnel = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 0.4), M.fresnel); fresnel.position.set(0, 1.15, 0.431);
-  flash.add(foot, fBody, fHead, fresnel);
-  flash.userData.anchor = new THREE.Vector3(0.55, 1.3, 0);
-  addMover(flash, new THREE.Vector3(0, 2.1, 0), new THREE.Vector3(2.7, 1.2, 0.3), 0.25);
-
-  // Gear train + film canister (decoration)
-  const gears = [
-    { teeth: 18, r: 0.7, home: [-1.0, 0.15, -0.15], to: [-4.1, 0.75, -0.9], mat: M.aluBright },
-    { teeth: 12, r: 0.46, home: [-0.6, -0.2, -0.15], to: [-2.99, 0.75, -0.9], mat: M.steel },
-    { teeth: 10, r: 0.38, home: [-1.4, -0.3, -0.15], to: [-3.55, -0.27, -0.9], mat: M.steel },
-  ].map((d, i) => {
-    const g = gear(d.teeth, d.r, M, d.mat);
-    const home = new THREE.Vector3(...d.home);
-    addMover(g, home, new THREE.Vector3(...d.to).sub(home), 0.3 + i * 0.05);
-    return { g, ratio: 18 / d.teeth * (i === 1 ? -1 : i === 2 ? -1 : 1) };
-  });
-  const can = canister(M);
-  addMover(can, new THREE.Vector3(1.4, -0.05, -0.1), new THREE.Vector3(2.1, -1.3, 0.4), 0.35);
+  const foot = mesh(new THREE.BoxGeometry(0.56, 0.08, 0.52), M.steel); foot.position.y = 0.04;
+  const lockWheel = mesh(cyl(0.3, 0.07, 40), M.black); lockWheel.position.y = 0.12;
+  const fBase = mesh(new RoundedBoxGeometry(1.05, 1.1, 0.78, 3, 0.07), M.shell); fBase.position.y = 0.72;
+  const fLcd = mesh(new THREE.PlaneGeometry(0.6, 0.3), M.oled); fLcd.rotation.y = Math.PI; fLcd.position.set(0, 0.85, -0.392);
+  const neck = mesh(new THREE.BoxGeometry(0.82, 0.14, 0.6), M.black); neck.position.y = 1.33;
+  const head = new THREE.Group(); head.position.y = 1.4;
+  const fHead = mesh(new RoundedBoxGeometry(1.25, 0.72, 0.95, 3, 0.07), M.shell); fHead.position.y = 0.36;
+  const fresnel = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), M.fresnel); fresnel.position.set(0, 0.36, 0.477);
+  head.add(fHead, fresnel);
+  const fBadge = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.14), M.flashBadge); fBadge.position.set(0, 0.45, 0.392);
+  flash.add(foot, lockWheel, fBase, fLcd, neck, head, fBadge);
+  flash.userData.anchor = V(-0.5, 1.9, 0);
+  const flashMover = addMover(flash, V(0.35, 1.21, -0.05), V(0, 1.85, 0), { delay: 0.3, step: "flash" });
 
   // Optical axis
-  const axisGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, -2), new THREE.Vector3(0, 0, 7.4)]);
+  const axisGeo = new THREE.BufferGeometry().setFromPoints([V(0.35, -0.1, -2.2), V(0.35, -0.1, 7.2)]);
   const axisLine = new THREE.Line(axisGeo, M.axis); axisLine.computeLineDistances();
   linesRoot.add(axisLine);
 
-  partsRoot.traverse((o) => { if (o.isMesh && o.castShadow !== false) { o.castShadow = true; o.receiveShadow = true; } });
-  [prismGlass, ...elements.map((e) => e.el)].forEach((o) => (o.castShadow = false));
+  partsRoot.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  partsRoot.traverse((o) => { if (o.isMesh && (o.material === M.glass || o.material === M.display)) o.castShadow = false; });
 
-  /* ---------------------------------------------------------------- labels */
+  const sections = { lens, screen, evf, flash };
+  const sectionMover = { lens: lensMover, screen: screenMover, evf: evfMover, flash: flashMover };
+
+  /* ---------------------------------------------------------------- overlay: callouts, build tags, checklist */
   const overlay = document.createElement("div");
   overlay.className = "camera-overlay";
-  overlay.innerHTML = `<svg class="camera-leaders" aria-hidden="true"></svg>` + Object.entries(SECTIONS).map(([id, s]) => `
-    <a class="camera-callout" href="${s.href}" data-id="${id}" data-cursor-label="Open">
-      <span class="label">${s.num} — ${s.part}</span>
-      <strong>${s.title}</strong>
-      <span class="label">${s.blurb}</span>
-    </a>`).join("");
+  overlay.innerHTML = `<svg class="camera-leaders" aria-hidden="true"></svg>` +
+    Object.entries(SECTIONS).map(([id, s]) => `
+      <a class="camera-callout" href="${s.href}" data-id="${id}" data-cursor-label="Open"${s.booth ? " data-booth-open" : ""}>
+        <span class="label">${s.num} — ${s.part}</span>
+        <strong>${s.title}</strong>
+        <span class="label">${s.blurb}</span>
+      </a>`).join("") +
+    STEPS.map((s, i) => `
+      <button class="camera-tag" type="button" data-step="${s.id}" data-cursor-label="Install">
+        <span class="camera-tag-num">${String(i + 1).padStart(2, "0")}</span>${s.name}
+      </button>`).join("");
   stage.append(overlay);
   const leaders = overlay.querySelector(".camera-leaders");
   const callouts = Object.fromEntries([...overlay.querySelectorAll(".camera-callout")].map((a) => [a.dataset.id, a]));
+  const tags = Object.fromEntries([...overlay.querySelectorAll(".camera-tag")].map((b) => [b.dataset.step, b]));
+
   Object.entries(callouts).forEach(([id, a]) => {
     a.addEventListener("pointerenter", () => (hovered = id));
     a.addEventListener("pointerleave", () => (hovered = null));
     a.addEventListener("focus", () => (hovered = id));
     a.addEventListener("blur", () => (hovered = null));
   });
+  Object.entries(tags).forEach(([id, b]) => {
+    b.addEventListener("click", () => install(id));
+    b.addEventListener("pointerenter", () => (hoverStep = id));
+    b.addEventListener("pointerleave", () => (hoverStep = null));
+  });
+
+  // Build checklist (replaces the title block while building)
+  const panelEl = document.createElement("div");
+  panelEl.className = "camera-steps";
+  panelEl.setAttribute("aria-live", "polite");
+  stage.append(panelEl);
 
   /* ---------------------------------------------------------------- state */
-  const sections = { lens, aperture, prism, flash };
-  const hoverK = { lens: 0, aperture: 0, prism: 0, flash: 0 };
+  const hoverK = { lens: 0, screen: 0, evf: 0, flash: 0 };
   let hovered = null;          // section id under pointer / focused
-  let overBody = false;
+  let hoverStep = null;        // build step under pointer
+  let overModel = false;
+  let mode = "explore";        // "explore" | "build"
   let exploded = true;
-  let t = reduceMotion ? 1 : 0; // 0 assembled → 1 exploded
+  const installed = new Set();
   let flashPulse = 0;
-  let yaw = -0.98, pitch = 0.24, dragYaw = 0;
+  let yaw = -0.62, pitch = 0.2, dragYaw = 0;
   let tiltX = 0, tiltY = 0;
 
   const toggleBtn = stage.querySelector("[data-camera-toggle]");
+  const buildBtn = stage.querySelector("[data-camera-build]");
+
+  function setTargets(filter, target, stagger = true) {
+    const now = performance.now();
+    for (const m of movers) {
+      if (!filter(m)) continue;
+      m.pending = target;
+      m.at = now + (reduceMotion || !stagger ? 0 : m.delay * (target ? 900 : 500));
+    }
+  }
+
   const setExploded = (v) => {
     exploded = v;
+    setTargets(() => true, v ? 1 : 0);
     stage.classList.toggle("is-exploded", v);
     if (toggleBtn) toggleBtn.textContent = v ? "Assemble" : "Explode";
   };
+
+  function renderSteps() {
+    const done = installed.size;
+    const next = STEPS.find((s) => !installed.has(s.id));
+    panelEl.innerHTML = `
+      <p class="label">Assembly · ${done}/${STEPS.length}</p>
+      <ol>${STEPS.map((s, i) => `
+        <li class="${installed.has(s.id) ? "is-done" : s === next ? "is-next" : ""}">
+          <span>${installed.has(s.id) ? "✓" : String(i + 1).padStart(2, "0")}</span>${s.name}<em>${s.note}</em>
+        </li>`).join("")}
+      </ol>
+      <p class="camera-steps-next label">${next ? `Next: ${next.name}` : "Complete"}</p>`;
+    Object.entries(tags).forEach(([id, b]) => {
+      b.hidden = installed.has(id);
+      b.classList.toggle("is-next", next?.id === id);
+    });
+  }
+
+  function startBuild() {
+    mode = "build";
+    installed.clear();
+    stage.classList.add("is-building");
+    stage.classList.remove("is-complete");
+    setTargets((m) => m.step, 1);
+    exploded = true;
+    if (buildBtn) buildBtn.textContent = "Exit build";
+    if (toggleBtn) toggleBtn.hidden = true;
+    renderSteps();
+  }
+
+  function endBuild(complete) {
+    mode = "explore";
+    stage.classList.remove("is-building");
+    if (buildBtn) buildBtn.textContent = "Build it";
+    if (toggleBtn) toggleBtn.hidden = false;
+    if (complete) {
+      exploded = false;
+      stage.classList.remove("is-exploded");
+      if (toggleBtn) toggleBtn.textContent = "Explode";
+      stage.classList.add("is-complete");
+      flashPulse = 1;
+      setTimeout(() => stage.classList.remove("is-complete"), 4200);
+    } else {
+      setExploded(true);
+    }
+  }
+
+  function install(step) {
+    if (mode !== "build" || installed.has(step)) return;
+    installed.add(step);
+    setTargets((m) => m.step === step, 0);
+    renderSteps();
+    if (installed.size === STEPS.length) setTimeout(() => endBuild(true), reduceMotion ? 0 : 1100);
+  }
+
   toggleBtn?.addEventListener("click", () => setExploded(!exploded));
+  buildBtn?.addEventListener("click", () => (mode === "build" ? endBuild(false) : startBuild()));
+
+  // Start assembled, then come apart
   setExploded(false);
+  movers.forEach((m) => { m.p = m.target = m.pending = 0; m.at = 0; });
   setTimeout(() => setExploded(true), reduceMotion ? 0 : 450);
 
   /* ---------------------------------------------------------------- pointer */
@@ -273,13 +402,20 @@ export function initCamera3D(stage) {
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     raycaster.setFromCamera(ndc, camera);
     const hit = raycaster.intersectObject(partsRoot, true)[0];
-    let o = hit?.object;
+    if (!hit) return {};
+    let o = hit.object, section = null, step = null;
     while (o && o !== partsRoot) {
-      if (o.userData.section) return { section: o.userData.section };
-      if (o.userData.kind === "body") return { body: true };
+      section ||= o.userData.section || null;
+      step ||= o.userData.step || null;
       o = o.parent;
     }
-    return {};
+    return { hit: true, section, step };
+  }
+
+  function cursorFor(p) {
+    if (!p.hit) return "";
+    if (mode === "build") return p.step && !installed.has(p.step) ? "Install" : "";
+    return "Photo Booth";
   }
 
   canvas.addEventListener("pointermove", (e) => {
@@ -293,11 +429,13 @@ export function initCamera3D(stage) {
     }
     if (e.pointerType !== "mouse") return;
     const p = pick(e);
-    hovered = p.section || null;
-    overBody = !!p.body;
-    setCursorLabel(hovered ? "Open" : overBody ? (exploded ? "Assemble" : "Explode") : "", !!(hovered || overBody));
+    overModel = !!p.hit;
+    hovered = mode === "explore" ? p.section : null;
+    hoverStep = mode === "build" && p.step && !installed.has(p.step) ? p.step : null;
+    const label = cursorFor(p);
+    setCursorLabel(label, !!label);
   });
-  canvas.addEventListener("pointerleave", () => { hovered = null; overBody = false; tiltX = tiltY = 0; setCursorLabel(""); });
+  canvas.addEventListener("pointerleave", () => { hovered = hoverStep = null; overModel = false; tiltX = tiltY = 0; setCursorLabel(""); });
   canvas.addEventListener("pointerdown", (e) => { down = { x: e.clientX, yaw: dragYaw, dragged: false }; });
   addEventListener("pointerup", (e) => {
     if (!down) return;
@@ -305,8 +443,10 @@ export function initCamera3D(stage) {
     down = null;
     if (wasDrag || e.target !== canvas) return;
     const p = pick(e);
-    if (p.section) location.href = SECTIONS[p.section].href;
-    else if (p.body) setExploded(!exploded);
+    if (!p.hit) return;
+    if (mode === "build") { if (p.step) install(p.step); return; }
+    flashPulse = 1;
+    onActivate();
   });
 
   /* ---------------------------------------------------------------- sizing */
@@ -328,6 +468,7 @@ export function initCamera3D(stage) {
   const clock = new THREE.Clock();
   const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   const tmp = new THREE.Vector3();
+  let zoomT = 0;
 
   function loop() {
     raf = 0;
@@ -336,57 +477,67 @@ export function initCamera3D(stage) {
     const raw = clock.getDelta();
     const dt = Math.min(raw, 0.05);
     const time = clock.elapsedTime;
+    const now = performance.now();
 
-    // explode progress (wall-clock based so slow frame rates still finish in ~1.6s)
-    const target = exploded ? 1 : 0;
-    t = reduceMotion ? target : t + Math.sign(target - t) * Math.min(Math.abs(target - t), Math.min(raw, 0.5) / 1.6);
-
+    // per-part progress (wall-clock based so slow frame rates still finish in ~1.4s)
+    let sum = 0, count = 0;
     for (const m of movers) {
-      const local = THREE.MathUtils.clamp((t - m.delay * (exploded ? 1 : 0.4)) / (1 - m.delay), 0, 1);
-      m.obj.position.copy(m.home).addScaledVector(m.offset, ease(local));
+      if (m.at && now >= m.at) { m.target = m.pending; m.at = 0; }
+      m.p = reduceMotion ? m.target : m.p + Math.sign(m.target - m.p) * Math.min(Math.abs(m.target - m.p), Math.min(raw, 0.5) / 1.4);
+      const e = ease(m.p);
+      m.obj.position.copy(m.home).addScaledVector(m.offset, e);
+      m.line.material.opacity = 0.9 * e;
+      if (m.step) { sum += m.p; count++; }
     }
-    linesRoot.children.forEach((l) => (l.material.opacity = 0.9 * ease(t)));
+    const tAll = sum / count;
+    axisLine.material.opacity = 0.9 * ease(lensMover.p);
 
     // hover easing
     for (const id in hoverK) hoverK[id] += ((hovered === id ? 1 : 0) - hoverK[id]) * Math.min(1, dt * 8);
 
     // hover: lift each section a little further along its explode direction
     for (const id in sections) {
-      const m = movers.find((mv) => mv.obj === sections[id]);
-      tmp.copy(m.offset).normalize().multiplyScalar(0.25 * hoverK[id] * t);
+      const m = sectionMover[id];
+      tmp.copy(m.offset).normalize().multiplyScalar(0.25 * hoverK[id] * ease(m.p));
       sections[id].position.add(tmp);
     }
+    // build hover: nudge the hovered part toward its slot
+    if (hoverStep) for (const m of movers) if (m.step === hoverStep) m.obj.position.addScaledVector(m.offset, -0.06);
 
-    // lens: elements fly out of the barrel; hover spreads them further
-    for (const e of elements) e.el.position.y = e.y + (e.to - e.y) * ease(t) + (e.to - 1.6) * 0.35 * hoverK.lens;
-    frontRing.position.y = 1.34 + 0.55 * ease(t) + 0.15 * hoverK.lens;
+    // lens: elements fly out of the barrel; hover spreads them; zoom ring turns
+    const le = ease(lensMover.p);
+    for (const e of elements) e.el.position.y = e.y + (e.to - e.y) * le + (e.to - 2.2) * 0.35 * hoverK.lens;
+    frontRing.position.y = 2.03 + 0.4 * le + 0.15 * hoverK.lens;
+    zoomRing.rotation.y += dt * 1.5 * hoverK.lens;
 
-    // iris: blades close on hover
-    const d = 0.62 - 0.3 * hoverK.aperture;
-    blades.forEach((b) => { b.position.z = d; b.rotation.y = 0.35 + 0.5 * hoverK.aperture; });
+    // LCD swings out on its hinge
+    screen.rotation.y = -1.9 * ease(screenMover.p) - 0.3 * hoverK.screen;
+    M.display.emissiveIntensity = 0.85 + 0.5 * hoverK.screen;
 
-    // prism: glass drops out of the housing; hover lifts housing
-    prismGlass.position.y = -0.95 * ease(t) - 0.2 * hoverK.prism;
-    prismGlass.rotation.y = time * 0.3 * hoverK.prism;
-    housingGroup.position.y = 0.15 * hoverK.prism;
+    // viewfinder: optics strung out along the eye axis
+    const ve = ease(evfMover.p);
+    eyeLens.position.z = 0.05 + 0.45 * ve + 0.15 * hoverK.evf;
+    oled.position.z = 0.15 + 0.95 * ve + 0.3 * hoverK.evf;
 
-    // flash: fire once when hover starts
+    // flash: head tilts up on hover, fires once when hover starts (and on click / completion)
+    head.rotation.x = -0.5 * hoverK.flash;
     if (hovered === "flash" && hoverK.flash < 0.15) flashPulse = 1;
     flashPulse = Math.max(0, flashPulse - dt * 2.2);
     M.fresnel.emissiveIntensity = flashPulse * 3;
 
-    // gears
-    if (!reduceMotion) {
-      const speed = (0.4 + (hovered ? 1.2 : 0)) * dt;
-      gears.forEach(({ g, ratio }) => (g.rotation.z += speed * ratio));
-    }
+    // mode dial idles round
+    if (!reduceMotion) modeDial.rotation.y += dt * 0.3;
 
     // view: cursor tilt + drag, zoom out as it explodes
+    zoomT += (tAll - zoomT) * Math.min(1, dt * 3);
     const ty = yaw + dragYaw + (reduceMotion ? 0 : tiltX * 0.25);
     const tp = pitch + (reduceMotion ? 0 : tiltY * 0.08);
     pivot.rotation.y += (ty - pivot.rotation.y) * Math.min(1, dt * 4);
     pivot.rotation.x += (tp - pivot.rotation.x) * Math.min(1, dt * 4);
-    const fit = fitDistance(isPhone() ? 4.9 : 4.7) * (0.7 + 0.3 * ease(t));
+    // make room for the checklist on the right while building
+    const shiftX = mode === "build" && !isPhone() ? -1.3 : 0;
+    pivot.position.x += (shiftX - pivot.position.x) * Math.min(1, dt * 3);
+    const fit = fitDistance(isPhone() ? 5.1 : 4.4) * (0.68 + 0.32 * ease(zoomT));
     camera.position.set(0, fit * 0.16, fit);
     camera.lookAt(0, 0, 0);
 
@@ -400,57 +551,65 @@ export function initCamera3D(stage) {
     return radius / Math.sin(Math.min(vfov, hfov) / 2);
   }
 
-  function placeLabels() {
-    const show = t > 0.92;
-    overlay.classList.toggle("is-visible", show);
-    if (!show) return;
-    const phone = isPhone() ? 1 : 0;
-    const top = 44, bottom = H - 56;
+  function project(obj, anchor) {
+    tmp.copy(anchor || obj.userData.anchor || V(0, 0, 0));
+    obj.localToWorld(tmp);
+    tmp.project(camera);
+    return [(tmp.x * 0.5 + 0.5) * W, (-tmp.y * 0.5 + 0.5) * H];
+  }
 
-    // 1. ideal spot for each label next to its part
-    const boxes = Object.keys(sections).map((id) => {
-      const g = sections[id];
-      tmp.copy(g.userData.anchor);
-      g.localToWorld(tmp);
-      tmp.project(camera);
-      const ax = (tmp.x * 0.5 + 0.5) * W;
-      const ay = (-tmp.y * 0.5 + 0.5) * H;
-      const [ox, oy] = LABEL_OFFSET[id][phone];
-      const el = callouts[id];
-      const lw = el.offsetWidth, lh = el.offsetHeight;
-      return {
-        id, ax, ay, lw, lh,
-        lx: THREE.MathUtils.clamp(ax + ox, 8, W - lw - 8),
-        ly: THREE.MathUtils.clamp(ay + oy, top, bottom - lh),
-      };
+  function placeLabels() {
+    const phone = isPhone() ? 1 : 0;
+    const top = 44, bottom = H - 60;
+    let boxes = [];
+
+    const showCallouts = mode === "explore" && Object.values(sectionMover).every((m) => m.p > 0.92);
+    overlay.classList.toggle("is-visible", showCallouts || mode === "build");
+    overlay.classList.toggle("is-build", mode === "build");
+    if (showCallouts) {
+      boxes = Object.keys(sections).map((id) => {
+        const [ax, ay] = project(sections[id]);
+        const [ox, oy] = LABEL_OFFSET[id][phone];
+        const el = callouts[id];
+        return { el, active: hovered === id, ax, ay, lw: el.offsetWidth, lh: el.offsetHeight, ox, oy };
+      });
+    } else if (mode === "build") {
+      boxes = STEPS.filter((s) => !installed.has(s.id)).map((s) => {
+        const m = movers.find((mv) => mv.step === s.id);
+        const [ax, ay] = project(m.obj, m.obj.userData.anchor);
+        const el = tags[s.id];
+        return { el, active: hoverStep === s.id, ax, ay, lw: el.offsetWidth, lh: el.offsetHeight, ox: 16, oy: -14 };
+      });
+    }
+    if (!boxes.length) { leaders.innerHTML = ""; return; }
+    boxes.forEach((b) => {
+      b.lx = THREE.MathUtils.clamp(b.ax + b.ox, 8, W - b.lw - 8);
+      b.ly = THREE.MathUtils.clamp(b.ay + b.oy, top, bottom - b.lh);
     });
 
-    // 2. nudge labels apart vertically so they never cover each other
+    // nudge labels apart vertically so they never cover each other
     boxes.sort((a, b) => a.ly - b.ly);
     for (let pass = 0; pass < 4; pass++) {
       for (let i = 0; i < boxes.length; i++) {
         for (let j = i + 1; j < boxes.length; j++) {
           const a = boxes[i], b = boxes[j];
-          const overlapX = a.lx < b.lx + b.lw && b.lx < a.lx + a.lw;
+          const overlapX = a.lx < b.lx + b.lw + 4 && b.lx < a.lx + a.lw + 4;
           const overlapY = a.ly < b.ly + b.lh + 6 && b.ly < a.ly + a.lh + 6;
           if (overlapX && overlapY) b.ly = a.ly + a.lh + 6;
         }
       }
-      // keep inside the stage: if pushed past the bottom, shift everything up
       const last = boxes[boxes.length - 1];
       const over = last.ly + last.lh - bottom;
       if (over > 0) boxes.forEach((bx) => (bx.ly = Math.max(top, bx.ly - over)));
     }
 
     let paths = "";
-    for (const { id, ax, ay, lw, lh, lx, ly } of boxes) {
-      const el = callouts[id];
+    for (const { el, active, ax, ay, lw, lh, lx, ly } of boxes) {
       el.style.transform = `translate(${lx}px, ${ly}px)`;
-      el.classList.toggle("is-active", hovered === id);
-      // leader: anchor → nearest edge of the label
+      el.classList.toggle("is-active", active);
       const ex = ax < lx ? lx : ax > lx + lw ? lx + lw : ax;
       const ey = ay < ly ? ly : ay > ly + lh ? ly + lh : ly + lh / 2;
-      paths += `<circle cx="${ax}" cy="${ay}" r="3"/><polyline points="${ax},${ay} ${ex},${ey}"${hovered === id ? ' class="is-active"' : ""}/>`;
+      paths += `<circle cx="${ax}" cy="${ay}" r="3"/><polyline points="${ax},${ay} ${ex},${ey}"${active ? ' class="is-active"' : ""}/>`;
     }
     leaders.innerHTML = paths;
   }
@@ -467,6 +626,7 @@ function cyl(r, h, seg = 72) { return new THREE.CylinderGeometry(r, r, h, seg); 
 function sectionGroup(id) {
   const g = new THREE.Group();
   g.userData.section = id;
+  g.userData.step = id;
   return g;
 }
 
@@ -484,7 +644,7 @@ function lensElement(r, sag, edge) {
   return new THREE.LatheGeometry(pts, 96);
 }
 
-// Ridged ring (focus grip / dial edge) around the y axis
+// Ridged ring (focus/zoom grip, dial edge) around the y axis
 function knurl(r, h, count, mat) {
   const g = new THREE.Group();
   g.add(mesh(cyl(r - 0.025, h), mat));
@@ -502,68 +662,20 @@ function knurl(r, h, count, mat) {
 
 function knurledDial(r, h, mat, capMat) {
   const g = knurl(r, h, 48, mat);
-  const cap = mesh(cyl(r * 0.7, 0.03), capMat);
+  const cap = mesh(cyl(r * 0.72, 0.03), capMat);
   cap.position.y = h / 2 + 0.01;
-  g.add(cap);
-  return g;
-}
-
-// Pentaprism hump: profile in (z, y), extruded along x
-function prismGeometry(scale) {
-  const s = new THREE.Shape();
-  const P = [[-0.6, 0], [0.6, 0], [0.6, 0.22], [0.22, 0.72], [-0.22, 0.72], [-0.6, 0.22]].map(([u, v]) => [u * scale, v * scale]);
-  s.moveTo(...P[0]); P.slice(1).forEach((p) => s.lineTo(...p)); s.closePath();
-  const depth = 1.3 * scale;
-  const geo = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 });
-  geo.translate(0, 0, -depth / 2);
-  geo.rotateY(Math.PI / 2);
-  return geo;
-}
-
-function gear(teeth, r, M, mat) {
-  const shape = new THREE.Shape();
-  const root = r - 0.1, step = (Math.PI * 2) / teeth;
-  for (let i = 0; i < teeth; i++) {
-    const a = i * step;
-    [[0, root], [0.15, r], [0.45, r], [0.6, root]].forEach(([f, rad], j) => {
-      const x = rad * Math.cos(a + f * step), y = rad * Math.sin(a + f * step);
-      i === 0 && j === 0 ? shape.moveTo(x, y) : shape.lineTo(x, y);
-    });
-  }
-  shape.closePath();
-  const holeR = (root - 0.12) * 0.3;
-  for (let k = 0; k < 5; k++) {
-    const a = (k / 5) * Math.PI * 2, hr = (root + 0.12) * 0.5;
-    const h = new THREE.Path(); h.absarc(hr * Math.cos(a), hr * Math.sin(a), holeR, 0, Math.PI * 2, true);
-    shape.holes.push(h);
-  }
-  const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.012, bevelSegments: 2, curveSegments: 20 });
-  geo.center();
-  const g = new THREE.Group();
-  g.add(mesh(geo, mat));
-  const axle = mesh(cyl(0.08, 0.4, 32), M.black); axle.rotation.x = Math.PI / 2; g.add(axle);
+  const mark = mesh(new THREE.BoxGeometry(0.03, 0.02, r * 0.5), capMat);
+  mark.position.set(0, h / 2, r * 0.5);
+  g.add(cap, mark);
   return g;
 }
 
 function screw(M) {
   const g = new THREE.Group();
-  const head = mesh(cyl(0.1, 0.05, 32), M.aluBright); head.position.y = -0.03;
-  const slot = mesh(new THREE.BoxGeometry(0.15, 0.02, 0.025), M.black); slot.position.y = -0.055;
-  const shaft = mesh(cyl(0.045, 0.28, 16), M.steel); shaft.position.y = 0.14;
+  const head = mesh(cyl(0.09, 0.05, 32), M.aluBright); head.position.y = -0.03;
+  const slot = mesh(new THREE.BoxGeometry(0.13, 0.02, 0.025), M.black); slot.position.y = -0.055;
+  const shaft = mesh(cyl(0.04, 0.26, 16), M.steel); shaft.position.y = 0.13;
   g.add(head, slot, shaft);
-  return g;
-}
-
-function canister(M) {
-  const g = new THREE.Group();
-  const shell = mesh(cyl(0.38, 1.0), M.canLabel);
-  const capT = mesh(cyl(0.4, 0.08), M.aluBright); capT.position.y = 0.53;
-  const capB = mesh(cyl(0.4, 0.08), M.aluBright); capB.position.y = -0.53;
-  const spool = mesh(cyl(0.12, 0.16, 24), M.steel); spool.position.y = 0.64;
-  const leader = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.62), M.film);
-  leader.position.set(0.88, 0, 0.3); leader.rotation.y = -0.35;
-  g.add(shell, capT, capB, spool, leader);
-  g.rotation.z = -0.25;
   return g;
 }
 
@@ -579,21 +691,25 @@ function materials() {
     return t;
   };
   const mono = (px, weight = 500) => `${weight} ${px}px "JetBrains Mono", ui-monospace, Menlo, monospace`;
+  const sans = (px, weight = 600) => `${weight} ${px}px "Inter", system-ui, sans-serif`;
 
-  // Leatherette grain (bump)
-  const grain = tex(256, 256, (g, w, h) => {
-    g.fillStyle = "#808080"; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 5000; i++) {
-      const v = 90 + Math.random() * 90 | 0;
-      g.fillStyle = `rgb(${v},${v},${v})`;
-      g.beginPath(); g.arc(Math.random() * w, Math.random() * h, 0.8 + Math.random() * 1.8, 0, 7); g.fill();
-    }
-  });
-  grain.colorSpace = THREE.NoColorSpace;
-  grain.wrapS = grain.wrapT = THREE.RepeatWrapping;
-  grain.repeat.set(5, 2);
+  const noise = (repeat, dots, rMin, rMax) => {
+    const t = tex(256, 256, (g, w, h) => {
+      g.fillStyle = "#808080"; g.fillRect(0, 0, w, h);
+      for (let i = 0; i < dots; i++) {
+        const v = 90 + Math.random() * 90 | 0;
+        g.fillStyle = `rgb(${v},${v},${v})`;
+        g.beginPath(); g.arc(Math.random() * w, Math.random() * h, rMin + Math.random() * (rMax - rMin), 0, 7); g.fill();
+      }
+    });
+    t.colorSpace = THREE.NoColorSpace;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(...repeat);
+    return t;
+  };
+  const grain = noise([3, 3], 5000, 0.8, 2.6);     // grip leatherette
+  const satin = noise([6, 4], 9000, 0.4, 0.9);     // fine body texture
 
-  // Brushed-metal streaks (roughness variation)
   const brushed = tex(512, 64, (g, w, h) => {
     g.fillStyle = "#5a5a5a"; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 400; i++) {
@@ -605,18 +721,27 @@ function materials() {
   brushed.colorSpace = THREE.NoColorSpace;
   brushed.wrapS = brushed.wrapT = THREE.RepeatWrapping;
 
-  const engraving = tex(1024, 102, (g, w, h) => {
-    g.fillStyle = "#1a1a1c";
-    g.font = mono(54); g.textBaseline = "middle";
+  const engraving = tex(1024, 110, (g, w, h) => {
+    g.fillStyle = "#c9ccd0"; g.font = mono(50); g.textBaseline = "middle";
     g.fillText("HAILEY PERNG", 8, h / 2);
-    g.font = mono(34, 400); g.textAlign = "right";
-    g.fillText("HP-001  ·  NO. 0426", w - 8, h / 2 + 4);
+    g.font = mono(32, 400); g.textAlign = "right";
+    g.fillText("HP-001 · NO. 0426", w - 8, h / 2 + 3);
+  });
+
+  const badge = tex(512, 140, (g, w, h) => {
+    g.fillStyle = "#d6d8dc"; g.textBaseline = "middle"; g.textAlign = "right";
+    g.font = sans(96, 500); g.fillText("α6700", w - 10, h / 2 + 4);
+  });
+
+  const flashBadge = tex(512, 100, (g, w, h) => {
+    g.fillStyle = "#bfc2c6"; g.textBaseline = "middle"; g.textAlign = "center";
+    g.font = mono(54); g.fillText("HP-F60  GN60", w / 2, h / 2);
   });
 
   const lensText = tex(1024, 1024, (g, w) => {
     const c = w / 2;
-    g.fillStyle = "#e8e9eb"; g.font = mono(46); g.textAlign = "center"; g.textBaseline = "middle";
-    const txt = "HP-NIKKOR  50MM  1:1.4  ·  ∅52  ·  HAILEY PERNG  ·  ";
+    g.fillStyle = "#e8e9eb"; g.font = mono(40); g.textAlign = "center"; g.textBaseline = "middle";
+    const txt = "E 18–135 mm  F3.5–5.6  OSS  ·  Ø55  ·  HAILEY PERNG  ·  ";
     const rad = c * 0.86;
     [...txt].forEach((ch, i) => {
       const a = (i / txt.length) * Math.PI * 2 - Math.PI / 2;
@@ -631,20 +756,55 @@ function materials() {
     for (let x = 6; x < w; x += 22) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
   });
 
-  const canTex = tex(1024, 256, (g, w, h) => {
-    g.fillStyle = "#121214"; g.fillRect(0, 0, w, h);
-    g.fillStyle = "#d9dadc"; g.fillRect(0, h * 0.34, w, h * 0.32);
-    g.fillStyle = "#121214"; g.font = mono(54); g.textBaseline = "middle";
-    for (let x = 20; x < w; x += 520) g.fillText("HP 400  ·  35MM", x, h / 2);
+  // Rear LCD: live-view style UI over a soft portrait silhouette
+  const displayTex = tex(1024, 576, (g, w, h) => {
+    const bg = g.createLinearGradient(0, 0, w, h);
+    bg.addColorStop(0, "#3b3d42"); bg.addColorStop(1, "#141518");
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 14; i++) {   // bokeh
+      g.fillStyle = `rgba(230,230,235,${0.04 + Math.random() * 0.08})`;
+      g.beginPath(); g.arc(Math.random() * w, Math.random() * h * 0.7, 20 + Math.random() * 60, 0, 7); g.fill();
+    }
+    g.fillStyle = "#8d9096";
+    g.beginPath(); g.ellipse(w * 0.5, h * 0.42, 78, 96, 0, 0, 7); g.fill();
+    g.beginPath(); g.ellipse(w * 0.5, h * 1.02, 230, 210, 0, Math.PI, 0); g.fill();
+    g.strokeStyle = "rgba(255,255,255,0.28)"; g.lineWidth = 1.5;
+    [1, 2].forEach((k) => { g.beginPath(); g.moveTo((w * k) / 3, 0); g.lineTo((w * k) / 3, h); g.moveTo(0, (h * k) / 3); g.lineTo(w, (h * k) / 3); g.stroke(); });
+    g.strokeStyle = "#ffffff"; g.lineWidth = 4;
+    const fx = w * 0.5 - 70, fy = h * 0.42 - 70, fs = 140, c = 28;
+    [[fx, fy, 1, 1], [fx + fs, fy, -1, 1], [fx, fy + fs, 1, -1], [fx + fs, fy + fs, -1, -1]].forEach(([x, y, sx, sy]) => {
+      g.beginPath(); g.moveTo(x + sx * c, y); g.lineTo(x, y); g.lineTo(x, y + sy * c); g.stroke();
+    });
+    g.fillStyle = "#ffffff"; g.font = mono(30); g.textBaseline = "top";
+    g.fillText("P    1/250   F2.8   ISO 400   ±0.0", 28, 22);
+    g.textBaseline = "bottom";
+    g.fillText("4K 24p   STBY", 28, h - 22);
+    g.textAlign = "right"; g.fillText("■■■ 86%", w - 28, h - 22);
+    g.fillStyle = "#e5483f"; g.beginPath(); g.arc(w - 220, h - 40, 9, 0, 7); g.fill();
   });
 
-  const filmTex = tex(512, 320, (g, w, h) => {
-    g.fillStyle = "#2a2522"; g.fillRect(0, 0, w, h);
-    g.fillStyle = "rgba(255,255,255,0.0)";
-    g.globalCompositeOperation = "destination-out";
-    for (let x = 12; x < w; x += 34) { g.fillRect(x, 14, 18, 26); g.fillRect(x, h - 40, 18, 26); }
-    g.globalCompositeOperation = "source-over";
-    g.fillStyle = "#3a332f"; g.fillRect(0, 60, w, h - 120);
+  const oledTex = tex(256, 180, (g, w, h) => {
+    g.fillStyle = "#0b0c0e"; g.fillRect(0, 0, w, h);
+    g.strokeStyle = "#9fd0ff"; g.lineWidth = 3; g.strokeRect(20, 20, w - 40, h - 40);
+    g.fillStyle = "#9fd0ff"; g.font = mono(22); g.fillText("1/250 F2.8", 30, h - 34);
+  });
+
+  const batteryTex = tex(512, 512, (g, w, h) => {
+    g.fillStyle = "#2a2b2f"; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#d6d8dc"; g.fillRect(40, 60, w - 80, 120);
+    g.fillStyle = "#1a1b1e"; g.font = mono(54); g.textBaseline = "middle";
+    g.fillText("Li-ion  7.2V", 60, 120);
+    g.fillStyle = "#c9ccd0"; g.font = mono(34, 400);
+    g.fillText("16.4Wh  2280mAh", 50, 260);
+    g.fillText("HP-FZ100", 50, 320);
+  });
+
+  const cardTex = tex(256, 340, (g, w, h) => {
+    g.fillStyle = "#16171a"; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#d6d8dc"; g.fillRect(0, h * 0.42, w, h * 0.22);
+    g.fillStyle = "#16171a"; g.font = mono(40); g.textBaseline = "middle"; g.fillText("64 GB", 24, h * 0.53);
+    g.fillStyle = "#c9a84a"; for (let i = 0; i < 8; i++) g.fillRect(16 + i * 28, 10, 18, 40);
+    g.fillStyle = "#c9ccd0"; g.font = mono(26); g.fillText("V60  U3", 24, h * 0.85);
   });
 
   const alu = new THREE.MeshStandardMaterial({ color: 0xcfd2d6, metalness: 1, roughness: 0.34, roughnessMap: brushed });
@@ -652,22 +812,32 @@ function materials() {
     alu,
     aluBright: new THREE.MeshStandardMaterial({ color: 0xeceef0, metalness: 1, roughness: 0.2, roughnessMap: brushed }),
     steel: new THREE.MeshStandardMaterial({ color: 0x8a8f96, metalness: 1, roughness: 0.42 }),
+    gunmetal: new THREE.MeshStandardMaterial({ color: 0x2c2e32, metalness: 0.7, roughness: 0.45, bumpMap: satin, bumpScale: 0.3 }),
+    shell: new THREE.MeshStandardMaterial({ color: 0x18191b, metalness: 0.15, roughness: 0.62, bumpMap: satin, bumpScale: 0.4 }),
     black: new THREE.MeshStandardMaterial({ color: 0x151517, metalness: 0.3, roughness: 0.5 }),
+    blackInside: new THREE.MeshStandardMaterial({ color: 0x0a0a0b, metalness: 0, roughness: 0.95, side: THREE.DoubleSide }),
     rubber: new THREE.MeshStandardMaterial({ color: 0x1a1a1c, metalness: 0, roughness: 0.92 }),
-    leather: new THREE.MeshStandardMaterial({ color: 0x111113, metalness: 0, roughness: 0.85, bumpMap: grain, bumpScale: 1.2 }),
-    bladeA: new THREE.MeshStandardMaterial({ color: 0x2b2d31, metalness: 0.8, roughness: 0.35 }),
-    bladeB: new THREE.MeshStandardMaterial({ color: 0x3d4045, metalness: 0.8, roughness: 0.3 }),
+    leather: new THREE.MeshStandardMaterial({ color: 0x121214, metalness: 0, roughness: 0.85, bumpMap: grain, bumpScale: 1.2 }),
+    white: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }),
+    red: new THREE.MeshStandardMaterial({ color: 0xc8352d, roughness: 0.4 }),
+    lamp: new THREE.MeshPhysicalMaterial({ color: 0x3a2a22, roughness: 0.1, clearcoat: 1 }),
+    sensor: new THREE.MeshPhysicalMaterial({ color: 0x24303a, metalness: 0.6, roughness: 0.12, iridescence: 1, iridescenceIOR: 1.6, clearcoat: 1 }),
+    darkGlass: new THREE.MeshPhysicalMaterial({ color: 0x0c0d10, metalness: 0.2, roughness: 0.05, clearcoat: 1 }),
     // Coated optical glass: reflective + see-through, with a faint anti-reflective sheen
     glass: new THREE.MeshPhysicalMaterial({
       color: 0x9fb1c2, metalness: 0.1, roughness: 0.02, transparent: true, opacity: 0.45,
       clearcoat: 1, clearcoatRoughness: 0, ior: 1.52, specularIntensity: 1,
       iridescence: 0.6, iridescenceIOR: 1.35, envMapIntensity: 2.2, depthWrite: false,
     }),
+    display: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: displayTex, emissiveIntensity: 0.85, roughness: 0.15, metalness: 0 }),
+    oled: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: oledTex, emissiveIntensity: 1, roughness: 0.2 }),
     engraving: new THREE.MeshStandardMaterial({ map: engraving, transparent: true, metalness: 0.4, roughness: 0.5 }),
+    badge: new THREE.MeshStandardMaterial({ map: badge, transparent: true, metalness: 0.8, roughness: 0.3 }),
+    flashBadge: new THREE.MeshStandardMaterial({ map: flashBadge, transparent: true, metalness: 0.4, roughness: 0.5 }),
     lensText: new THREE.MeshStandardMaterial({ map: lensText, transparent: true, metalness: 0.2, roughness: 0.6 }),
     fresnel: new THREE.MeshStandardMaterial({ map: fresnelTex, roughness: 0.25, emissive: 0xffffff, emissiveIntensity: 0 }),
-    canLabel: new THREE.MeshStandardMaterial({ map: canTex, metalness: 0.5, roughness: 0.35 }),
-    film: new THREE.MeshStandardMaterial({ map: filmTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.4 }),
+    battery: new THREE.MeshStandardMaterial({ map: batteryTex, metalness: 0.2, roughness: 0.55 }),
+    card: new THREE.MeshStandardMaterial({ map: cardTex, roughness: 0.5 }),
     line: new THREE.LineDashedMaterial({ color: 0x8a8f96, dashSize: 0.14, gapSize: 0.08, transparent: true, opacity: 0 }),
     axis: new THREE.LineDashedMaterial({ color: 0xa9adb3, dashSize: 0.35, gapSize: 0.1, transparent: true, opacity: 0 }),
   };

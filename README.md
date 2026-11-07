@@ -7,7 +7,8 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 
 | URL | File | What it is |
 | --- | --- | --- |
-| `/` | `index.html` | Home: an exploded camera; each part opens a section |
+| `/` | `index.html` | Home: an exploded a6700-style camera with a Build mode; clicking it opens the Photo Booth |
+| `/#booth` | `js/photobooth.js` | Photo Booth: webcam, effects, photo strips, senior portraits and a booking form |
 | `/film/` | `film/index.html` | All films, with Grid / List / Explore views and tag filters |
 | `/film/project.html?id=…` | `film/project.html` | One film (template filled from `data/films.json`) |
 | `/photography/` | `photography/index.html` | All photo series, same browsing views |
@@ -23,7 +24,8 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 - `js/site.js`: runs on every page; builds the header and footer, starts the clock and cursor
 - `js/cursor.js`: crosshair cursor. Add `data-cursor-label="Word"` to any element to show a word in the ring
 - `js/camera3d.js`: the home page's 3D exploded camera (three.js, loaded from a CDN via the import map in `index.html`).
-  `SECTIONS` sets which part links where and what its callout says; each part is built from simple shapes below it
+  `SECTIONS` sets which part links where and what its callout says; `STEPS` is the Build-mode checklist
+- `js/photobooth.js`: the Photo Booth window. Photos stay in the visitor's browser; nothing is uploaded
 - `js/camera.js`: 2D drawing of the camera, used automatically if a browser can't run 3D
 - `js/discovery.js`: Grid / List / Explore views, filters and shuffle for Film and Photography
 - `js/lightbox.js`: full-size photo viewer on series pages
@@ -37,6 +39,9 @@ and `thumbnail` to an image path like `/assets/film/my-film.jpg`.
 
 **A photo series:** add an entry to `data/photos.json`. Put images in `assets/photography/`
 and list them under `images` with `src`, `alt` and `aspect` (e.g. `"4 / 5"`).
+
+**A senior portrait:** add an entry to `data/portraits.json` with `name`, `school`, `year`,
+`location` and `src` (e.g. `/assets/portraits/maya.jpg`). They show in the Photo Booth strip.
 
 Tags in either file become the filter buttons automatically.
 
