@@ -8,7 +8,8 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 | URL | File | What it is |
 | --- | --- | --- |
 | `/` | `index.html` | Home: an exploded a6700-style camera with a Build mode; clicking it opens the Photo Booth |
-| `/#booth` | `js/photobooth.js` | Photo Booth: webcam, effects, photo strips, senior portraits and a booking form |
+| `/#booth` | `js/photobooth.js` | Photo Booth: webcam Polaroids, then senior-photo booking info and past seniors |
+| `/about/#purpose` | `about/index.html` | "What keeps me charged": energy, goal, purpose (the camera's battery links here) |
 | `/film/` | `film/index.html` | All films, with Grid / List / Explore views and tag filters |
 | `/film/project.html?id=…` | `film/project.html` | One film (template filled from `data/films.json`) |
 | `/photography/` | `photography/index.html` | All photo series, same browsing views |
@@ -41,7 +42,7 @@ and `thumbnail` to an image path like `/assets/film/my-film.jpg`.
 and list them under `images` with `src`, `alt` and `aspect` (e.g. `"4 / 5"`).
 
 **A senior portrait:** add an entry to `data/portraits.json` with `name`, `school`, `year`,
-`location` and `src` (e.g. `/assets/portraits/maya.jpg`). They show in the Photo Booth strip.
+`location` and `src` (e.g. `/assets/portraits/maya.jpg`). They show as Polaroids under "Past seniors" in the Photo Booth.
 
 Tags in either file become the filter buttons automatically.
 

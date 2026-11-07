@@ -3,7 +3,7 @@
 //
 //  - Explore mode: parts float apart along their assembly axes; dashed lines show where they
 //    came from. Callouts link to sections (Lens → Film, LCD → Photography, Viewfinder → About,
-//    Flash → Photo Booth). Clicking the camera itself opens the Photo Booth (options.onActivate).
+//    Flash → Photo Booth, Battery → Purpose on the About page). Clicking the camera itself opens the Photo Booth (options.onActivate).
 //  - Build mode: parts scatter and you put the camera together, one step at a time. Click a
 //    part (or its tag) to install it. When every step is done the flash fires.
 //  - Move the cursor to tilt, drag to rotate.
@@ -20,6 +20,7 @@ export const SECTIONS = {
   screen: { href: "/photography/", num: "02", part: "Vari-angle LCD",  title: "Photography", blurb: "Still frames" },
   evf:    { href: "/about/",       num: "03", part: "Viewfinder",      title: "About",       blurb: "How I see" },
   flash:  { href: "#booth",        num: "04", part: "Flash · hot shoe", title: "Photo Booth", blurb: "Portraits & bookings", booth: true },
+  battery: { href: "/about/#purpose", num: "05", part: "Battery",       title: "Purpose",     blurb: "What keeps me charged" },
 };
 
 // Build mode: the order the checklist suggests (any order works)
@@ -40,6 +41,7 @@ const LABEL_OFFSET = {
   screen: [[50, 40], [-40, 50]],
   evf:    [[60, -40], [10, -60]],
   flash:  [[-230, -40], [-140, -40]],
+  battery: [[-230, -30], [-150, 20]],
 };
 
 export function initCamera3D(stage, { onActivate = () => {} } = {}) {
@@ -157,12 +159,20 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
   const socket = mesh(annulus(0.05, 0.14, 0.03), M.steel); socket.position.set(0.35, -1.16, 0); body.add(socket);
   addMover(body, V(0, 0, 0), V(0, 0, 0));
 
-  /* Battery + door: drop out of the grip */
-  const battery = mesh(new RoundedBoxGeometry(0.72, 1.6, 0.86, 3, 0.05), M.battery);
-  const bm = addMover(battery, V(-1.56, -0.3, 0.75), V(0, -2.7, 0.2), { delay: 0.05, step: "battery" });
-  bm.obj.userData.anchor = V(0, -0.8, 0.43);
+  /* 05 Battery → Purpose: drops out of the grip; its charge meter fills on hover */
+  const battery = sectionGroup("battery");
+  battery.add(mesh(new RoundedBoxGeometry(0.72, 1.6, 0.86, 3, 0.05), M.battery));
+  const cells = [0, 1, 2, 3, 4].map((i) => {
+    const c = mesh(new THREE.BoxGeometry(0.42, 0.15, 0.02), M.cell.clone());
+    c.position.set(0, -0.62 + i * 0.2, 0.435);
+    battery.add(c);
+    return c;
+  });
+  const contacts = mesh(new THREE.BoxGeometry(0.4, 0.04, 0.3), M.gold); contacts.position.y = 0.81; battery.add(contacts);
+  battery.userData.anchor = V(0, -0.2, 0.43);
+  const batteryMover = addMover(battery, V(-1.56, -0.3, 0.75), V(-1.5, -2.4, -1.0), { delay: 0.05, step: "battery" });
   const door = mesh(new THREE.BoxGeometry(0.98, 0.05, 1.0), M.shell); door.userData.step = "battery";
-  addMover(door, V(-1.56, -1.17, 0.78), V(0, -1.35, 0.2), { delay: 0.0, step: "battery" });
+  addMover(door, V(-1.56, -1.17, 0.78), V(-0.7, -1.2, -0.5), { delay: 0.0, step: "battery" });
 
   /* SD card: slides out of the side slot */
   const card = mesh(new THREE.BoxGeometry(0.06, 0.83, 1.1), M.card);
@@ -259,8 +269,8 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
   partsRoot.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   partsRoot.traverse((o) => { if (o.isMesh && (o.material === M.glass || o.material === M.display)) o.castShadow = false; });
 
-  const sections = { lens, screen, evf, flash };
-  const sectionMover = { lens: lensMover, screen: screenMover, evf: evfMover, flash: flashMover };
+  const sections = { lens, screen, evf, flash, battery };
+  const sectionMover = { lens: lensMover, screen: screenMover, evf: evfMover, flash: flashMover, battery: batteryMover };
 
   /* ---------------------------------------------------------------- overlay: callouts, build tags, checklist */
   const overlay = document.createElement("div");
@@ -300,7 +310,7 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
   stage.append(panelEl);
 
   /* ---------------------------------------------------------------- state */
-  const hoverK = { lens: 0, screen: 0, evf: 0, flash: 0 };
+  const hoverK = { lens: 0, screen: 0, evf: 0, flash: 0, battery: 0 };
   let hovered = null;          // section id under pointer / focused
   let hoverStep = null;        // build step under pointer
   let overModel = false;
@@ -524,6 +534,13 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
     if (hovered === "flash" && hoverK.flash < 0.15) flashPulse = 1;
     flashPulse = Math.max(0, flashPulse - dt * 2.2);
     M.fresnel.emissiveIntensity = flashPulse * 3;
+
+    // battery: charge cells light up one by one on hover (and stay lit once assembled)
+    const charge = Math.max(hoverK.battery, 1 - ease(batteryMover.p));
+    cells.forEach((c, i) => {
+      const on = THREE.MathUtils.clamp(charge * 5 - i, 0, 1);
+      c.material.emissiveIntensity = 0.15 + 1.6 * on + (hovered === "battery" ? 0.3 * Math.sin(time * 6 - i) * on : 0);
+    });
 
     // mode dial idles round
     if (!reduceMotion) modeDial.rotation.y += dt * 0.3;
@@ -838,6 +855,8 @@ function materials() {
     fresnel: new THREE.MeshStandardMaterial({ map: fresnelTex, roughness: 0.25, emissive: 0xffffff, emissiveIntensity: 0 }),
     battery: new THREE.MeshStandardMaterial({ map: batteryTex, metalness: 0.2, roughness: 0.55 }),
     card: new THREE.MeshStandardMaterial({ map: cardTex, roughness: 0.5 }),
+    cell: new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0xeef3f6, emissiveIntensity: 0.15, roughness: 0.3 }),
+    gold: new THREE.MeshStandardMaterial({ color: 0xc9a84a, metalness: 1, roughness: 0.3 }),
     line: new THREE.LineDashedMaterial({ color: 0x8a8f96, dashSize: 0.14, gapSize: 0.08, transparent: true, opacity: 0 }),
     axis: new THREE.LineDashedMaterial({ color: 0xa9adb3, dashSize: 0.35, gapSize: 0.1, transparent: true, opacity: 0 }),
   };
