@@ -1,9 +1,9 @@
 // Home page: a 3D exploded mirrorless camera (a6700-style body, E-mount lens, hot-shoe flash),
 // rendered like a CAD assembly drawing.
 //
-//  - Explore mode: parts float apart along their assembly axes; dashed lines show where they
+//  - Explore mode: starts assembled; clicking the camera opens it up (parts float apart) or closes it along their assembly axes; dashed lines show where they
 //    came from. Callouts link to sections (Lens → Film, LCD → Photography, Viewfinder → About,
-//    Flash → Photo Booth, Battery → Purpose on the About page). Clicking the camera itself opens the Photo Booth (options.onActivate).
+//    Flash → Photo Booth, Battery → Purpose on the About page).
 //  - Build mode: parts scatter and you put the camera together, one step at a time. Click a
 //    part (or its tag) to install it. When every step is done the flash fires.
 //  - Move the cursor to tilt, drag to rotate.
@@ -44,7 +44,7 @@ const LABEL_OFFSET = {
   battery: [[-230, -30], [-150, 20]],
 };
 
-export function initCamera3D(stage, { onActivate = () => {} } = {}) {
+export function initCamera3D(stage) {
   const probe = document.createElement("canvas");
   if (!(probe.getContext("webgl2") || probe.getContext("webgl"))) return false;
 
@@ -323,6 +323,8 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
 
   const toggleBtn = stage.querySelector("[data-camera-toggle]");
   const buildBtn = stage.querySelector("[data-camera-build]");
+  const hintEl = stage.querySelector("[data-camera-hint]");
+  const figEl = stage.querySelector(".camera-fig");
 
   function setTargets(filter, target, stagger = true) {
     const now = performance.now();
@@ -338,6 +340,8 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
     setTargets(() => true, v ? 1 : 0);
     stage.classList.toggle("is-exploded", v);
     if (toggleBtn) toggleBtn.textContent = v ? "Assemble" : "Explode";
+    if (hintEl) hintEl.textContent = v ? "Click the camera to close it · drag to rotate" : "Click the camera to open it · drag to rotate";
+    if (figEl) figEl.textContent = v ? "Fig. 1 — Exploded assembly" : "Fig. 1 — General assembly";
   };
 
   function renderSteps() {
@@ -375,9 +379,7 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
     if (buildBtn) buildBtn.textContent = "Build it";
     if (toggleBtn) toggleBtn.hidden = false;
     if (complete) {
-      exploded = false;
-      stage.classList.remove("is-exploded");
-      if (toggleBtn) toggleBtn.textContent = "Explode";
+      setExploded(false);
       stage.classList.add("is-complete");
       flashPulse = 1;
       setTimeout(() => stage.classList.remove("is-complete"), 4200);
@@ -397,10 +399,9 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
   toggleBtn?.addEventListener("click", () => setExploded(!exploded));
   buildBtn?.addEventListener("click", () => (mode === "build" ? endBuild(false) : startBuild()));
 
-  // Start assembled, then come apart
+  // Start assembled; the first click opens it up
   setExploded(false);
   movers.forEach((m) => { m.p = m.target = m.pending = 0; m.at = 0; });
-  setTimeout(() => setExploded(true), reduceMotion ? 0 : 450);
 
   /* ---------------------------------------------------------------- pointer */
   const raycaster = new THREE.Raycaster();
@@ -425,7 +426,7 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
   function cursorFor(p) {
     if (!p.hit) return "";
     if (mode === "build") return p.step && !installed.has(p.step) ? "Install" : "";
-    return "Photo Booth";
+    return exploded ? "Close" : "Open";
   }
 
   canvas.addEventListener("pointermove", (e) => {
@@ -455,8 +456,7 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
     const p = pick(e);
     if (!p.hit) return;
     if (mode === "build") { if (p.step) install(p.step); return; }
-    flashPulse = 1;
-    onActivate();
+    setExploded(!exploded);
   });
 
   /* ---------------------------------------------------------------- sizing */
@@ -554,7 +554,8 @@ export function initCamera3D(stage, { onActivate = () => {} } = {}) {
     // make room for the checklist on the right while building
     const shiftX = mode === "build" && !isPhone() ? -1.3 : 0;
     pivot.position.x += (shiftX - pivot.position.x) * Math.min(1, dt * 3);
-    const fit = fitDistance(isPhone() ? 5.1 : 4.4) * (0.68 + 0.32 * ease(zoomT));
+    pivot.position.y = -0.55 * (1 - ease(zoomT));   // assembled: sit lower so the flash isn't clipped
+    const fit = fitDistance(isPhone() ? 5.1 : 4.4) * (0.58 + 0.42 * ease(zoomT));
     camera.position.set(0, fit * 0.16, fit);
     camera.lookAt(0, 0, 0);
 
