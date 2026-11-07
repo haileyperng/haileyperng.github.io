@@ -1,10 +1,20 @@
 [
-  { "id": "maya",   "name": "Maya Chen",       "school": "Placeholder High", "year": "2026", "location": "Griffith Park", "src": null, "alt": "" },
-  { "id": "jordan", "name": "Jordan Ruiz",     "school": "Placeholder High", "year": "2026", "location": "Venice Beach",  "src": null, "alt": "" },
-  { "id": "ava",    "name": "Ava Patel",       "school": "Placeholder Prep", "year": "2026", "location": "Arts District", "src": null, "alt": "" },
-  { "id": "liam",   "name": "Liam Okafor",     "school": "Placeholder High", "year": "2026", "location": "USC campus",    "src": null, "alt": "" },
-  { "id": "sofia",  "name": "Sofia Martinez",  "school": "Placeholder Prep", "year": "2026", "location": "El Matador",    "src": null, "alt": "" },
-  { "id": "ethan",  "name": "Ethan Kim",       "school": "Placeholder High", "year": "2026", "location": "Little Tokyo",  "src": null, "alt": "" },
-  { "id": "nora",   "name": "Nora Williams",   "school": "Placeholder Prep", "year": "2026", "location": "Descanso Gardens", "src": null, "alt": "" },
-  { "id": "kai",    "name": "Kai Nakamura",    "school": "Placeholder High", "year": "2026", "location": "Downtown LA",   "src": null, "alt": "" }
+  {
+    "id": "adriana",
+    "name": "Adriana",
+    "school": "",
+    "year": "2026",
+    "location": "123 Farms",
+    "src": null,
+    "alt": "Senior portrait of Adriana at 123 Farms"
+  },
+  {
+    "id": "daniel",
+    "name": "Daniel",
+    "school": "",
+    "year": "2026",
+    "location": "Carbon Canyon Regional Park",
+    "src": null,
+    "alt": "Senior portrait of Daniel at Carbon Canyon Regional Park"
+  }
 ]

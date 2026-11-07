@@ -69,7 +69,7 @@ export function initBooth() {
               </ul>
               <a class="booth-email" href="mailto:${EMAIL}?subject=${encodeURIComponent("Senior photos")}">${EMAIL}</a>
               <ul class="booth-links">
-                <li><a href="#" data-cursor-label="Soon">Instagram ↗</a></li>
+                <li><a href="https://www.instagram.com/hp_filmz/" target="_blank" rel="noopener">Instagram @hp_filmz ↗</a></li>
                 <li><a href="/contact/">Contact page →</a></li>
               </ul>
             </div>
@@ -357,7 +357,7 @@ export function initBooth() {
     $("[data-past]").innerHTML = list.map((p, i) => `
       <figure class="polaroid is-small" style="--r:${[-3, 2, -1.5, 3, -2.5, 1.5, -1, 2.5][i % 8]}deg">
         <div class="polaroid-img">${p.src ? `<img src="${esc(p.src)}" alt="${esc(p.alt || p.name)}" loading="lazy">` : `<span class="polaroid-ph label">Photo</span>`}</div>
-        <figcaption>${esc(p.name)} · ’${esc(String(p.year).slice(-2))}</figcaption>
+        <figcaption>${esc(p.name)} ’${esc(String(p.year).slice(-2))}</figcaption>
       </figure>`).join("");
   }
 
