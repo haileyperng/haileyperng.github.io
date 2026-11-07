@@ -74,33 +74,56 @@
         <h2 id="purpose-title">What keeps me charged</h2>
       </div>
 
-      <div class="purpose-cell" aria-hidden="true">
-        <div class="purpose-charge"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="purpose-cap"></div>
-        <p class="label purpose-spec">Li-ion · 7.2V · HP-FZ100 · Charged 100%</p>
-      </div>
+      <!-- Glide across the battery (or drag / use arrow keys) to charge it; each level unlocks more.
+           Edit the text in each <li>; data-at is the charge (%) that reveals it. -->
+      <div class="charge" data-charge>
+        <div class="charge-cell" role="slider" tabindex="0" aria-label="Battery charge" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0%, glide or use arrow keys to charge">
+          <div class="charge-body">
+            <div class="charge-fill"></div>
+            <div class="charge-marks" aria-hidden="true"></div>
+            <span class="charge-pct" aria-hidden="true">0%</span>
+          </div>
+          <div class="charge-cap"></div>
+        </div>
+        <div class="charge-meta">
+          <p class="label" data-charge-status>Glide across the battery to charge it</p>
+          <p class="label">Li-ion · 7.2V · HP-FZ100</p>
+        </div>
 
-      <div class="purpose-grid">
-        <section>
-          <p class="label">+ What energizes me</p>
-          <ul>
-            <li>Placeholder: the people, places or moments that make you want to pick up a camera.</li>
-            <li>Placeholder: a kind of story you can't stop thinking about.</li>
-            <li>Placeholder: the part of making work you love most (on set, in the edit, the shoot).</li>
-          </ul>
-        </section>
-        <section>
-          <p class="label">→ My goal</p>
-          <p>Placeholder: where you're headed. The work you want to make in the next few years, and who you want to make it with.</p>
-        </section>
-        <section>
-          <p class="label">◎ My purpose</p>
-          <p>Placeholder: why you make images at all. One or two sentences you'd want someone to remember about you.</p>
-        </section>
+        <ol class="charge-levels">
+          <li data-at="10">
+            <p class="label">10% · What energizes me</p>
+            <p>Placeholder: the people, places or moments that make you want to pick up a camera.</p>
+          </li>
+          <li data-at="25">
+            <p class="label">25% · What energizes me</p>
+            <p>Placeholder: a kind of story you can't stop thinking about.</p>
+          </li>
+          <li data-at="40">
+            <p class="label">40% · What energizes me</p>
+            <p>Placeholder: the part of making work you love most (on set, in the edit, the shoot).</p>
+          </li>
+          <li data-at="60">
+            <p class="label">60% · Goal, this year</p>
+            <p>Placeholder: what you're working toward right now.</p>
+          </li>
+          <li data-at="80">
+            <p class="label">80% · Goal, the next few years</p>
+            <p>Placeholder: the work you want to make, and who you want to make it with.</p>
+          </li>
+          <li data-at="100">
+            <p class="label">100% · My purpose</p>
+            <p class="charge-purpose">Placeholder: why you make images at all. One or two sentences you'd want someone to remember about you.</p>
+          </li>
+        </ol>
       </div>
     </section>
   </main>
 
   <footer class="site-footer" data-site-footer></footer>
+  <script type="module">
+    import { initCharge } from "/js/charge.js";
+    document.querySelectorAll("[data-charge]").forEach(initCharge);
+  </script>
 </body>
 </html>
