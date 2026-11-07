@@ -12,6 +12,9 @@
 import { loadJSON, esc } from "/js/data.js";
 
 const EMAIL = "hperng@usc.edu";
+const SITE = "haileyperng.github.io";
+// Printed on every Polaroid's bottom border
+const PRINT = { title: "Senior photos by Hailey Perng", lines: [EMAIL, SITE] };
 const DEVELOP_MS = 5000;
 
 export function initBooth() {
@@ -267,20 +270,27 @@ export function initBooth() {
     root.classList.remove("is-busy");
   }
 
-  // Full Polaroid (frame + caption) for saving
+  // Full Polaroid for saving: photo, handwritten date, and contact info printed on the border
   async function compose(photo, date) {
     await document.fonts.load('40px "Caveat"').catch(() => {});
-    const W = 880, pad = 52, img = W - pad * 2, H = pad + img + 230;
+    const W = 880, pad = 52, img = W - pad * 2, foot = 300, H = pad + img + foot;
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     const g = c.getContext("2d");
     g.fillStyle = "#f7f6f1"; g.fillRect(0, 0, W, H);
     g.drawImage(photo, pad, pad, img, img);
-    g.fillStyle = "#2a2a2c"; g.textAlign = "center"; g.textBaseline = "middle";
-    g.font = '64px "Caveat", "Bradley Hand", cursive';
-    g.fillText("Hailey Perng Photo Booth", W / 2, pad + img + 95);
-    g.font = '44px "Caveat", "Bradley Hand", cursive';
-    g.fillStyle = "#6a6a6e";
-    g.fillText(date, W / 2, pad + img + 160);
+    const y0 = pad + img;
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillStyle = "#2a2a2c";
+    g.font = '58px "Caveat", "Bradley Hand", cursive';
+    g.fillText(date, W / 2, y0 + 70);
+    g.strokeStyle = "#d4d3cc"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(pad + 60, y0 + 125); g.lineTo(W - pad - 60, y0 + 125); g.stroke();
+    g.fillStyle = "#0f0f10";
+    g.font = '500 30px "JetBrains Mono", ui-monospace, monospace';
+    g.fillText(PRINT.title.toUpperCase(), W / 2, y0 + 170);
+    g.fillStyle = "#5e6269";
+    g.font = '400 26px "JetBrains Mono", ui-monospace, monospace';
+    g.fillText(PRINT.lines.join("  ·  "), W / 2, y0 + 215);
     return c;
   }
 
@@ -297,7 +307,13 @@ export function initBooth() {
     el.style.zIndex = ++zTop;
     el.innerHTML = `
       <div class="polaroid-img"><img src="${imgSrc}" alt="Your Polaroid from ${esc(date)}"><span class="polaroid-film"></span></div>
-      <figcaption>${esc(date)}</figcaption>
+      <figcaption>
+        <span class="polaroid-date">${esc(date)}</span>
+        <span class="polaroid-print">
+          <strong>${esc(PRINT.title)}</strong>
+          <span><a href="mailto:${EMAIL}?subject=${encodeURIComponent("Senior photos")}">${EMAIL}</a> · <a href="/">${SITE}</a></span>
+        </span>
+      </figcaption>
       <div class="polaroid-actions">
         <a href="${saveUrl}" download="hailey-perng-polaroid-${Date.now()}.jpg">Save</a>
         <button type="button" data-remove>Remove</button>

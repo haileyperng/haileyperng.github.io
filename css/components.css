@@ -459,7 +459,13 @@ html.booth-open { overflow: hidden; }
 .polaroid-img img { width: 100%; height: 100%; object-fit: cover; }
 .polaroid figcaption { height: 64px; display: grid; place-items: center; font: 400 26px/1 "Caveat", "Bradley Hand", cursive; }
 .polaroid-ph { position: absolute; inset: 0; display: grid; place-items: center; color: #8a8a8f; background: repeating-linear-gradient(135deg, #e6e6e2 0 8px, #dcdcd7 8px 16px); }
-.polaroid-actions { position: absolute; right: 10px; bottom: 76px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
+.booth-tray .polaroid figcaption { height: auto; display: grid; gap: 6px; padding: 10px 6px 14px; text-align: center; }
+.polaroid-date { font: 400 26px/1 "Caveat", "Bradley Hand", cursive; }
+.polaroid-print { display: grid; gap: 2px; padding-top: 8px; border-top: 1px solid #dcdbd4; font: 400 10px/1.4 var(--font-mono); color: #5e6269; letter-spacing: 0.02em; }
+.polaroid-print strong { font-weight: 500; color: #0f0f10; text-transform: uppercase; letter-spacing: 0.06em; }
+.polaroid-print a { color: inherit; }
+.polaroid-print a:hover { color: #0f0f10; text-decoration: underline; }
+.polaroid-actions { position: absolute; right: 10px; bottom: 110px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
 .polaroid:hover .polaroid-actions, .polaroid:focus-within .polaroid-actions { opacity: 1; }
 .polaroid-actions a, .polaroid-actions button { padding: 5px 9px; border-radius: 999px; background: rgba(15, 15, 16, 0.75); color: #fff; font: 500 11px var(--font-sans); backdrop-filter: blur(4px); }
 .booth-tray .polaroid:hover { transform: translate(var(--x), calc(var(--y) - 6px)) rotate(0deg); }
