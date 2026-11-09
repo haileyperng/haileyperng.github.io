@@ -567,3 +567,59 @@ html.booth-open { overflow: hidden; }
   .booth-flash.go { animation-duration: 0.2s; }
   .polaroid.is-ejecting { animation: none; }
 }
+
+/* ---------- Home: film roll (js/roll.js) ---------- */
+.camera-next { position: absolute; left: 50%; bottom: 20px; translate: -50% 0; z-index: 3; white-space: nowrap; color: var(--fg); }
+.camera-next:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.roll { --film-w: clamp(300px, 40vw, 560px); --sprocket: 40px; padding: clamp(64px, 10vw, 120px) var(--gutter) 96px; scroll-margin-top: var(--header-h); }
+.roll-head { text-align: center; }
+.roll-head h2 { font-size: clamp(36px, 7vw, 88px); margin-top: 10px; }
+.roll-can { display: block; width: calc(var(--film-w) * 1.28); max-width: 100%; margin: 40px auto -6px; position: relative; z-index: 1; }
+
+/* One continuous strip behind every frame, so the sprocket holes never break */
+.roll-list { position: relative; }
+.roll-list::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: var(--film-w); translate: -50% 0; background-color: #0f0f10;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='34'%3E%3Crect x='11' y='8' width='18' height='18' rx='3.5' fill='%23f4f4f2'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='34'%3E%3Crect x='11' y='8' width='18' height='18' rx='3.5' fill='%23f4f4f2'/%3E%3C/svg%3E");
+  background-repeat: repeat-y; background-position: left top, right top;
+}
+.roll-item { --neg: 1; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--film-w) minmax(0, 1fr); column-gap: clamp(24px, 4vw, 64px); align-items: center; }
+.roll-film { grid-column: 2; grid-row: 1; padding: 14px var(--sprocket) 0; }
+.roll-frame { position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: #2a2b2e; filter: invert(var(--neg)); will-change: filter; }
+.roll-frame img { width: 100%; height: 100%; object-fit: cover; }
+.roll-ph { position: absolute; inset: 0; display: grid; place-items: center; font: 500 clamp(40px, 7vw, 92px)/1 var(--font-mono); letter-spacing: -0.04em; color: #e6e7e9; background: repeating-linear-gradient(135deg, #34363a 0 12px, #2c2e31 12px 24px); }
+.roll-frame.is-blank { display: grid; place-items: center; background: #1a1b1d; filter: none; }
+.roll-frame.is-blank .label { color: #6b6e74; }
+.roll-edge { display: flex; justify-content: space-between; padding: 5px 2px 3px; font: 500 10px/1 var(--font-mono); letter-spacing: 0.1em; color: #9a9ea5; }
+
+/* Captions sit either side of the strip and fade in as the frame develops */
+.roll-caption { grid-column: 3; grid-row: 1; max-width: 38ch; opacity: calc(1 - var(--neg) * 0.85); transform: translateY(calc(var(--neg) * 14px)); }
+.roll-item:nth-child(even) .roll-caption { grid-column: 1; justify-self: end; text-align: right; }
+.roll-caption h3 { font-size: clamp(22px, 2.6vw, 34px); margin: 8px 0 8px; }
+.roll-caption p:last-child { color: var(--muted); }
+.roll-item.is-last { --neg: 0; }
+.roll-item.is-last .roll-film { padding-bottom: 44px; }
+.roll-actions { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.roll-item:nth-child(even) .roll-actions { justify-content: flex-end; }
+
+/* Where you are on the roll */
+.roll-hud-wrap { position: sticky; top: calc(var(--header-h) + 14px); height: 0; z-index: 5; }
+.roll-hud { display: inline-block; padding: 6px 10px; background: var(--bg); border: 1px solid var(--line); color: var(--fg); }
+.roll-hud:empty { display: none; }
+
+@media (max-width: 760px) {
+  .roll { --film-w: 100%; --sprocket: 34px; padding-left: 12px; padding-right: 12px; }
+  .roll-can { width: 92%; }
+  .roll-item, .roll-item:nth-child(even) { display: block; }
+  .roll-caption, .roll-item:nth-child(even) .roll-caption { max-width: none; text-align: left; padding: 12px 42px 26px; color: #e6e7e9; }
+  .roll-caption p:last-child { color: #b9bcc1; }
+  .roll-caption .label { color: #9a9ea5; }
+  .roll-item:nth-child(even) .roll-actions { justify-content: flex-start; }
+  .roll-item.is-last .roll-film { padding-bottom: 0; }
+  .camera-next { bottom: 54px; }
+  .roll-hud-wrap { text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) { .roll-caption { transform: none; } }

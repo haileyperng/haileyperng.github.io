@@ -44,6 +44,9 @@ and list them under `images` with `src`, `alt` and `aspect` (e.g. `"4 / 5"`).
 **A senior portrait:** add an entry to `data/portraits.json` with `name`, `school`, `year`,
 `location` and `src` (e.g. `/assets/portraits/maya.jpg`). They show as Polaroids under "Past seniors" in the Photo Booth.
 
+**The film roll on the home page:** edit `data/timeline.json`. Each entry is one frame, oldest first.
+Set `src` to a photo path (e.g. `/assets/roll/2024-broadcast.jpg`) to replace the placeholder.
+
 Tags in either file become the filter buttons automatically.
 
 ## Previewing locally

@@ -37,6 +37,7 @@
     <section class="camera" data-camera aria-label="Sections">
       <p class="label camera-fig">Fig. 1 — Exploded assembly</p>
       <p class="label camera-rev">Dwg. HP-6700 · Rev. C<br>Scale 1:1</p>
+      <a class="label camera-next" href="#roll">How I got here ↓</a>
       <p class="label camera-hint" data-camera-hint>Click the camera to open it · drag to rotate</p>
       <p class="label camera-loading" data-camera-loading>Loading model…</p>
       <div class="camera-actions">
@@ -45,6 +46,50 @@
       </div>
       <p class="camera-done" aria-live="polite">Assembled. <button type="button" data-booth-open>Open the Photo Booth →</button></p>
     </section>
+
+    <!-- Film roll: frames come from data/timeline.json (js/roll.js) -->
+    <section class="roll" id="roll" data-roll aria-labelledby="roll-title">
+      <header class="roll-head">
+        <p class="label">Roll 01 · 2020 – Now</p>
+        <h2 id="roll-title">How I got here</h2>
+      </header>
+
+      <svg class="roll-can" viewBox="0 0 420 120" aria-hidden="true">
+        <defs>
+          <linearGradient id="roll-metal" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8d9096"/><stop offset=".3" stop-color="#eceef0"/><stop offset=".65" stop-color="#b6b9be"/><stop offset="1" stop-color="#64676d"/>
+          </linearGradient>
+          <linearGradient id="roll-body" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#26272a"/><stop offset=".3" stop-color="#4a4c51"/><stop offset=".7" stop-color="#1a1b1d"/><stop offset="1" stop-color="#0c0c0d"/>
+          </linearGradient>
+        </defs>
+        <rect x="6" y="28" width="14" height="52" fill="#3a3c40"/>
+        <rect x="18" y="8" width="26" height="100" rx="3" fill="url(#roll-metal)"/>
+        <rect x="376" y="8" width="26" height="100" rx="3" fill="url(#roll-metal)"/>
+        <rect x="42" y="4" width="336" height="108" fill="url(#roll-body)"/>
+        <rect x="42" y="36" width="336" height="42" fill="#e6e7e9"/>
+        <text x="210" y="64" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="20" font-weight="500" fill="#0f0f10">HP 400 · PERNG PRODUCTION</text>
+        <rect x="42" y="106" width="336" height="10" fill="#050506"/>
+      </svg>
+
+      <ol class="roll-list" data-roll-list>
+        <li class="roll-hud-wrap" aria-hidden="true"><p class="roll-hud label" data-roll-hud></p></li>
+        <li class="roll-item is-last">
+          <div class="roll-film">
+            <div class="roll-frame is-blank"><span class="label">Unexposed</span></div>
+          </div>
+          <div class="roll-caption">
+            <p class="label">Next frame</p>
+            <h3>This roll isn't finished.</h3>
+            <p>Let's shoot the next one together.</p>
+            <p class="roll-actions">
+              <button class="chip" type="button" data-booth-open>Photo Booth</button>
+              <a class="chip" href="/contact/">Contact</a>
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
   </main>
 
   <footer class="site-footer" data-site-footer></footer>
@@ -52,6 +97,7 @@
   <script type="module">
     import { initBooth } from "/js/photobooth.js";
     initBooth();
+    import("/js/roll.js").then(({ initRoll }) => initRoll(document.querySelector("[data-roll]")));
     const stage = document.querySelector("[data-camera]");
     let ok = false;
     try {
