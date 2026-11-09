@@ -496,6 +496,20 @@ button.filmcam-frame:hover { outline: 2px solid #e8e8ea; outline-offset: -2px; }
 .filmcam-note { margin-top: 12px; color: #8a8a8f; text-transform: none; letter-spacing: 0; line-height: 1.5; }
 .filmcam-fly { position: fixed; z-index: 4; transform-origin: 0 0; pointer-events: none; object-fit: cover; }
 
+/* One senior's session: details, then every photo */
+.booth-session { position: absolute; inset: 38px 0 0; z-index: 2; overflow-y: auto; overscroll-behavior: contain; background: #f4f4f2; color: #0f0f10; padding: 0 28px 40px; }
+.booth-session[hidden] { display: none; }
+.booth-session .label { color: #5e6269; }
+.booth-session-top { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; gap: 8px; padding: 14px 0; background: #f4f4f2; }
+.booth-session-facts { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 16px 24px; margin: 8px 0 28px; padding-bottom: 20px; border-bottom: 1px solid #0f0f10; }
+.booth-session-facts dd { font-size: clamp(22px, 3.4vw, 40px); font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; margin-top: 6px; }
+.booth-session-grid { columns: 3; column-gap: 10px; }
+.booth-session-photo { display: block; width: 100%; margin-bottom: 10px; break-inside: avoid; overflow: hidden; }
+.booth-session-photo img { width: 100%; height: auto; transition: transform 0.4s var(--ease); }
+.booth-session-photo:hover img { transform: scale(1.03); }
+.booth-session-ph { display: grid; place-items: center; width: 100%; aspect-ratio: var(--ar); background: repeating-linear-gradient(135deg, #e6e7e9 0 10px, #dcdde0 10px 20px); }
+.booth-session-photo:hover .booth-session-ph { background: repeating-linear-gradient(135deg, #d9dadc 0 10px, #cfd1d4 10px 20px); }
+
 /* Photo viewer, over the whole booth window */
 .booth-viewer { position: absolute; inset: 38px 0 0; z-index: 3; display: grid; grid-template-columns: 60px minmax(0, 1fr) 60px; grid-template-rows: minmax(0, 1fr) auto; align-items: center; justify-items: center; background: #0c0c0d; }
 .booth-viewer[hidden] { display: none; }
@@ -544,6 +558,10 @@ button.filmcam-frame:hover { outline: 2px solid #e8e8ea; outline-offset: -2px; }
   .booth { padding: 0; }
   .booth-window { width: 100%; height: 100%; border-radius: 0; }
   .booth-shoot { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .booth-session { padding: 0 16px 32px; }
+  .booth-session-facts { grid-template-columns: 1fr 1fr; }
+  .booth-session-facts > div:last-child { grid-column: 1 / -1; }
+  .booth-session-grid { columns: 2; }
   .booth-viewer { grid-template-columns: 44px minmax(0, 1fr) 44px; }
   .booth-viewer-nav { width: 34px; height: 34px; }
   .booth-seniors { padding: 32px 16px 40px; }

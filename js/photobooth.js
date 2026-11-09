@@ -4,8 +4,8 @@
 //  - Shutter: 3-2-1 countdown, white flash, click sound, then the shot flies into the film
 //    camera beside it and the film winds on. Each exposure develops from a negative and
 //    can be opened, saved or removed.
-//  - Senior photos on a roll of film (data/portraits.json). Wind it with the arrows, a swipe
-//    or the arrow keys; click any exposure to explore every photo.
+//  - Senior photos on a roll of film (data/portraits.json). Each exposure is one senior's
+//    cover photo; clicking it opens their session: name, grad year, location and every photo.
 //  - Below: how to book senior photos, contact details and a booking form.
 //  - Visitors' photos never leave their device: they live in memory until the page closes.
 //
@@ -139,6 +139,14 @@ export function initBooth() {
         </section>
       </div>
 
+      <div class="booth-session" data-session role="group" aria-label="Senior session" hidden>
+        <div class="booth-session-top">
+          <button type="button" class="booth-pill" data-session-close>← Back to the roll</button>
+          <a class="booth-pill is-dark" href="#booth-seniors" data-jump>Book yours ↓</a>
+        </div>
+        <div data-session-body></div>
+      </div>
+
       <div class="booth-viewer" data-viewer role="group" aria-label="Photo viewer" hidden>
         <button type="button" class="booth-viewer-close" data-viewer-close aria-label="Close photo">×</button>
         <button type="button" class="booth-viewer-nav" data-viewer-prev aria-label="Previous photo">←</button>
@@ -205,6 +213,7 @@ export function initBooth() {
     root.classList.remove("is-busy");
     countEl.textContent = "";
     closeViewer();
+    closeSession();
     stopCamera();
     root.classList.remove("is-open");
     document.documentElement.classList.remove("booth-open");
@@ -235,6 +244,7 @@ export function initBooth() {
       if (jump) {
         e.preventDefault();
         closeViewer();
+        closeSession();
         $(jump.getAttribute("href")).scrollIntoView({ behavior: "smooth" });
       }
     }
@@ -243,12 +253,14 @@ export function initBooth() {
   root.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      if (viewer.list) closeViewer(); else close();
+      if (viewer.list) closeViewer();
+      else if (!sessionEl.hidden) closeSession();
+      else close();
     } else if (viewer.list && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();
       showViewer(viewer.index + (e.key === "ArrowLeft" ? -1 : 1));
     } else if (e.key === "Tab") {
-      const scope = viewer.list ? $("[data-viewer]") : win;
+      const scope = viewer.list ? $("[data-viewer]") : !sessionEl.hidden ? sessionEl : win;
       const f = [...scope.querySelectorAll("button, a[href], input, textarea, select")].filter((el) => !el.closest("[hidden]") && !el.disabled);
       if (!f.length) return;
       const first = f[0], last = f[f.length - 1];
@@ -522,8 +534,58 @@ export function initBooth() {
     openViewer(list, shots.indexOf(shot), shot.el);
   }
 
+  /* ------------------------------------------------------------ senior session
+     Name, grad year, location, then every photo from that shoot. */
+  const sessionEl = $("[data-session]");
+  const sessionBody = $("[data-session-body]");
+  let sessionReturn = null;
+  let sessionPhotos = [];
+
+  const photosOf = (s) => s.photos || [{ src: s.src, alt: s.alt }];   // a browser may briefly cache older data
+  const coverOf = (s) => s.cover || photosOf(s)[0]?.src || null;
+
+  function openSession(s, returnTo) {
+    const title = `${s.name} ’${String(s.year).slice(-2)}`;
+    sessionPhotos = photosOf(s).map((p, i) => ({
+      src: p.src,
+      alt: p.alt || `Senior portrait of ${s.name}`,
+      title,
+      meta: s.location,
+      n: i + 1,
+    }));
+    sessionBody.innerHTML = `
+      <dl class="booth-session-facts">
+        <div><dt class="label">Name</dt><dd>${esc(s.name)}</dd></div>
+        <div><dt class="label">Grad year</dt><dd>${esc(s.year)}</dd></div>
+        <div><dt class="label">Location</dt><dd>${esc(s.location)}</dd></div>
+      </dl>
+      <div class="booth-session-grid">
+        ${sessionPhotos.map((p, i) => `
+          <button type="button" class="booth-session-photo" data-photo="${i}" aria-label="Open photo ${i + 1} of ${sessionPhotos.length}" data-cursor-label="View">
+            ${p.src ? `<img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy">` : `<span class="booth-session-ph label" style="--ar:${i % 3 === 1 ? "3 / 2" : "2 / 3"}">Photo ${i + 1}</span>`}
+          </button>`).join("")}
+      </div>`;
+    sessionReturn = returnTo;
+    sessionEl.hidden = false;
+    sessionEl.scrollTop = 0;
+    $("[data-session-close]").focus();
+  }
+
+  function closeSession() {
+    if (sessionEl.hidden) return;
+    sessionEl.hidden = true;
+    sessionBody.innerHTML = "";
+    sessionReturn?.focus?.();
+  }
+
+  $("[data-session-close]").addEventListener("click", closeSession);
+  sessionBody.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-photo]");
+    if (b) openViewer(sessionPhotos, +b.dataset.photo, b);
+  });
+
   /* ------------------------------------------------------------ senior roll
-     Every photo in data/portraits.json is one exposure. Wind with the arrows, a swipe or the
+     Every senior in data/portraits.json is one exposure. Wind with the arrows, a swipe or the
      arrow keys; the exposure in the gate is developed and the rest stay negatives. */
   function initRoll(seniors) {
     const section = $("[data-roll]");
@@ -535,25 +597,18 @@ export function initBooth() {
     const prev = $("[data-roll-prev]");
     const next = $("[data-roll-next]");
     const pad = (n) => String(n).padStart(2, "0");
-    const yr = (s) => `’${String(s.year).slice(-2)}`;
-
-    // (a browser may briefly hold an older copy of the data with one photo per senior)
-    const photos = seniors.flatMap((s) => (s.photos || [{ src: s.src, alt: s.alt }]).map((p) => ({
-      src: p.src,
-      alt: p.alt || `Senior portrait of ${s.name}`,
-      title: `${s.name} ${yr(s)}`,
-      meta: s.location,
-      actions: `<a class="booth-pill" href="#booth-seniors" data-jump>Book yours ↓</a>`,
-    })));
-    const items = [...photos, { blank: true }];
+    const items = [...seniors, { blank: true }];
 
     section.hidden = false;
-    film.innerHTML = items.map((e, n) => `
-      <button type="button" class="booth-roll-frame${e.blank ? " is-blank" : ""}" data-frame="${n}" aria-label="${e.blank ? "Next exposure: yours" : `Exposure ${n + 1}: ${esc(e.title)}. Open photo.`}" ${e.blank ? "" : `data-cursor-label="View"`}>
+    film.innerHTML = items.map((e, n) => {
+      const cover = e.blank ? null : coverOf(e);
+      return `
+      <button type="button" class="booth-roll-frame${e.blank ? " is-blank" : ""}" data-frame="${n}" aria-label="${e.blank ? "Next exposure: yours" : `Open ${esc(e.name)}'s session`}" ${e.blank ? "" : `data-cursor-label="Open"`}>
         <span class="booth-roll-img">
-          ${e.blank ? `<span class="label">Unexposed</span>` : e.src ? `<img src="${esc(e.src)}" alt="" loading="lazy" draggable="false">` : `<span class="booth-roll-ph">${esc(e.title)}</span>`}
+          ${e.blank ? `<span class="label">Unexposed</span>` : cover ? `<img src="${esc(cover)}" alt="" loading="lazy" draggable="false">` : `<span class="booth-roll-ph">${esc(e.name)}</span>`}
         </span>
-      </button>`).join("");
+      </button>`;
+    }).join("");
     const frames = [...film.children];
 
     let current = 0, swiped = false, startX = null;
@@ -575,12 +630,9 @@ export function initBooth() {
       next.disabled = current === items.length - 1;
       caption.innerHTML = e.blank
         ? `<h4>This one's yours.</h4><a class="booth-pill is-dark" href="#booth-seniors" data-jump>Book your senior photos ↓</a>`
-        : `<h4>${esc(e.title)}</h4><p>${esc(e.meta)}</p><p class="label">Click any exposure to explore</p>`;
+        : `<h4>${esc(e.name)}</h4><p class="label">Click the exposure to open the session</p>`;
       place();
     }
-
-    // Winding through the viewer keeps the strip in step
-    photos.forEach((p) => { p.onShow = (i) => { if (i !== current) go(i); }; });
 
     prev.addEventListener("click", () => go(current - 1));
     next.addEventListener("click", () => go(current + 1));
@@ -589,10 +641,10 @@ export function initBooth() {
       if (!f || swiped) return;
       const n = +f.dataset.frame;
       go(n);
-      if (!items[n].blank) openViewer(photos, n, f);
+      if (!items[n].blank) openSession(items[n], f);
     });
     section.addEventListener("keydown", (e) => {
-      if (viewer.list) return;
+      if (viewer.list || !sessionEl.hidden) return;
       if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); }
       else if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); }
     });

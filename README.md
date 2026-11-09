@@ -41,8 +41,9 @@ and `thumbnail` to an image path like `/assets/film/my-film.jpg`.
 **A photo series:** add an entry to `data/photos.json`. Put images in `assets/photography/`
 and list them under `images` with `src`, `alt` and `aspect` (e.g. `"4 / 5"`).
 
-**Senior photos:** edit `data/portraits.json`. Each senior has a `photos` list, and every photo
-becomes one exposure on the roll in the Photo Booth. Set `src` to a path like `/assets/seniors/adriana-01.jpg`.
+**Senior photos:** edit `data/portraits.json`. Each senior is one exposure on the roll in the Photo Booth.
+Set `cover` to the photo shown on the film and list every photo from the session under `photos`,
+with paths like `/assets/seniors/adriana-01.jpg`. Without a `cover`, the first photo is used.
 
 Tags in either file become the filter buttons automatically.
 

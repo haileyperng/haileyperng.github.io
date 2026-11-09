@@ -4,7 +4,16 @@
     "name": "Adriana",
     "year": "2026",
     "location": "123 Farms",
+    "cover": null,
     "photos": [
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      },
       {
         "src": null,
         "alt": ""
@@ -28,7 +37,16 @@
     "name": "Daniel",
     "year": "2026",
     "location": "Carbon Canyon Regional Park",
+    "cover": null,
     "photos": [
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      },
       {
         "src": null,
         "alt": ""
