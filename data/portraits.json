@@ -2,19 +2,49 @@
   {
     "id": "adriana",
     "name": "Adriana",
-    "school": "",
     "year": "2026",
     "location": "123 Farms",
-    "src": null,
-    "alt": "Senior portrait of Adriana at 123 Farms"
+    "photos": [
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      }
+    ]
   },
   {
     "id": "daniel",
     "name": "Daniel",
-    "school": "",
     "year": "2026",
     "location": "Carbon Canyon Regional Park",
-    "src": null,
-    "alt": "Senior portrait of Daniel at Carbon Canyon Regional Park"
+    "photos": [
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      },
+      {
+        "src": null,
+        "alt": ""
+      }
+    ]
   }
 ]

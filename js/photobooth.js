@@ -1,12 +1,13 @@
-// Photo Booth: opens over the home page when the camera is clicked (or at /#booth).
+// Photo Booth: opens over the home page from the Photo Booth button (or at /#booth).
 //
-//  - Live webcam viewfinder (mirrored, square like instant film).
-//  - Shutter: 3-2-1 countdown, white flash, click sound, then a Polaroid ejects from the
-//    slot and slowly develops. Polaroids pile up beside the camera; each can be saved.
-//  - A film roll of "how I got here" (data/timeline.json), wound frame by frame.
-//  - Below: how to book senior photos, contact details, a booking form and past seniors
-//    (data/portraits.json) shown as Polaroids.
-//  - Photos never leave the visitor's device: they live in memory until the page closes.
+//  - Live webcam viewfinder (mirrored, 3:2 like a 35mm frame).
+//  - Shutter: 3-2-1 countdown, white flash, click sound, then the shot flies into the film
+//    camera beside it and the film winds on. Each exposure develops from a negative and
+//    can be opened, saved or removed.
+//  - Senior photos on a roll of film (data/portraits.json). Wind it with the arrows, a swipe
+//    or the arrow keys; click any exposure to explore every photo.
+//  - Below: how to book senior photos, contact details and a booking form.
+//  - Visitors' photos never leave their device: they live in memory until the page closes.
 //
 // Anything with data-booth-open (or a link to #booth) opens it.
 
@@ -14,9 +15,10 @@ import { loadJSON, esc } from "/js/data.js";
 
 const EMAIL = "haileyperng.acting@gmail.com";
 const SITE = "haileyperng.github.io";
-// Printed on every Polaroid's bottom border
+// Printed along the film edge of every saved exposure
 const PRINT = { title: "Document more memories", lines: [EMAIL, SITE] };
-const DEVELOP_MS = 5000;
+const STEP = 180;        // one frame of film in the camera, px (a multiple of the 30px sprocket pitch)
+const DEVELOP_MS = 4000;
 
 export function initBooth() {
   const root = document.createElement("div");
@@ -31,39 +33,54 @@ export function initBooth() {
           <span class="booth-light"></span><span class="booth-light"></span>
         </div>
         <h2 id="booth-title" class="booth-title">Photo Booth</h2>
-        <a class="booth-book" href="#booth-seniors" data-jump>Senior photos ↓</a>
+        <a class="booth-book" href="#booth-roll" data-jump>Senior photos ↓</a>
       </div>
 
       <div class="booth-scroll" data-scroll>
         <section class="booth-shoot">
           <div class="booth-cam">
             <div class="booth-finder">
-              <canvas class="booth-view" width="720" height="720" data-view aria-label="Camera preview"></canvas>
+              <canvas class="booth-view" width="900" height="600" data-view aria-label="Camera preview"></canvas>
               <div class="booth-message" data-message hidden></div>
               <div class="booth-count" data-count aria-live="assertive"></div>
             </div>
             <div class="booth-controls">
-              <span class="label">Instant · 1 exposure</span>
-              <button type="button" class="booth-shutter" data-shutter aria-label="Take a Polaroid" data-cursor-label="Snap"></button>
-              <span class="label booth-counter" data-counter>0 shots</span>
+              <span class="label">35mm · HP 400</span>
+              <button type="button" class="booth-shutter" data-shutter aria-label="Take a photo" data-cursor-label="Snap"></button>
+              <span class="label booth-counter" data-shots>0 exposures</span>
             </div>
-            <div class="booth-slot" aria-hidden="true"></div>
           </div>
-          <div class="booth-tray" data-tray aria-label="Your Polaroids">
-            <p class="booth-tray-empty label" data-empty>Your Polaroids land here.<br>They stay on this device.</p>
+
+          <div class="filmcam">
+            <div class="filmcam-top" aria-hidden="true">
+              <span class="filmcam-rewind"></span>
+              <span class="filmcam-name">HP-35</span>
+              <span class="filmcam-counter" data-counter>00</span>
+              <span class="filmcam-lever" data-lever></span>
+            </div>
+            <div class="filmcam-back">
+              <div class="filmcam-can" aria-hidden="true"><span>HP<br>400</span></div>
+              <div class="filmcam-gate" data-gate>
+                <div class="filmcam-track" data-track aria-label="Your exposures">
+                  <span class="filmcam-frame is-blank"></span><span class="filmcam-frame is-blank"></span><span class="filmcam-frame is-blank"></span>
+                </div>
+              </div>
+              <div class="filmcam-spool" data-spool aria-hidden="true"></div>
+            </div>
+            <p class="filmcam-note label">Every shot winds onto this roll. Click one to see it and save it. Your photos stay on this device.</p>
           </div>
         </section>
 
-        <section class="booth-roll" data-roll aria-labelledby="booth-roll-title" hidden>
+        <section class="booth-roll" id="booth-roll" data-roll aria-labelledby="booth-roll-title" hidden>
           <div class="booth-roll-head">
             <div>
-              <p class="label">Roll 01 · 2020 – Now</p>
-              <h3 id="booth-roll-title">How I got here</h3>
+              <p class="label">Roll 01 · Seniors ’26</p>
+              <h3 id="booth-roll-title">Senior photos</h3>
             </div>
             <div class="booth-roll-controls">
               <span class="label" data-roll-count></span>
-              <button type="button" class="booth-roll-btn" data-roll-prev aria-label="Previous frame">←</button>
-              <button type="button" class="booth-roll-btn" data-roll-next aria-label="Next frame">→</button>
+              <button type="button" class="booth-roll-btn" data-roll-prev aria-label="Previous exposure">←</button>
+              <button type="button" class="booth-roll-btn" data-roll-next aria-label="Next exposure">→</button>
             </div>
           </div>
           <div class="booth-roll-view" data-roll-view>
@@ -78,7 +95,7 @@ export function initBooth() {
                 <rect x="6" y="156" width="84" height="16" rx="3" fill="url(#booth-cap)"/>
                 <rect x="10" y="22" width="78" height="136" fill="url(#booth-can)"/>
                 <rect x="26" y="22" width="36" height="136" fill="#e6e7e9"/>
-                <text transform="translate(50 90) rotate(-90)" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#0f0f10">HP 400 · ROLL 01</text>
+                <text transform="translate(50 90) rotate(-90)" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#0f0f10">HP 400 · SENIORS</text>
                 <rect x="86" y="30" width="10" height="120" fill="#050506"/>
               </svg>
               <div class="booth-roll-film" data-roll-film></div>
@@ -119,9 +136,15 @@ export function initBooth() {
               </div>
             </form>
           </div>
-          <p class="label booth-past-title">Past seniors</p>
-          <div class="booth-past" data-past></div>
         </section>
+      </div>
+
+      <div class="booth-viewer" data-viewer role="group" aria-label="Photo viewer" hidden>
+        <button type="button" class="booth-viewer-close" data-viewer-close aria-label="Close photo">×</button>
+        <button type="button" class="booth-viewer-nav" data-viewer-prev aria-label="Previous photo">←</button>
+        <figure class="booth-viewer-figure" data-viewer-figure></figure>
+        <button type="button" class="booth-viewer-nav" data-viewer-next aria-label="Next photo">→</button>
+        <div class="booth-viewer-bar" data-viewer-bar></div>
       </div>
     </div>
     <div class="booth-flash" data-flash></div>`;
@@ -135,9 +158,13 @@ export function initBooth() {
   const message = $("[data-message]");
   const countEl = $("[data-count]");
   const flashEl = $("[data-flash]");
-  const tray = $("[data-tray]");
   const shutterBtn = $("[data-shutter]");
+  const shotsEl = $("[data-shots]");
   const counter = $("[data-counter]");
+  const gate = $("[data-gate]");
+  const track = $("[data-track]");
+  const finder = $(".booth-finder");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const video = document.createElement("video");
   video.playsInline = true;
@@ -150,11 +177,10 @@ export function initBooth() {
   let cancelToken = 0;
   let returnFocus = null;
   let pushedState = false;
-  let shots = 0;
-  let zTop = 1;
+  let exposures = 0;
+  const shots = [];         // newest first: { url, n, date, el }
 
-  loadJSON("/data/portraits.json").then(renderPast).catch(() => {});
-  loadJSON("/data/timeline.json").then(initRoll).catch(() => {});
+  loadJSON("/data/portraits.json").then(initRoll).catch(() => {});
 
   /* ------------------------------------------------------------ open / close */
   function open({ fromHash = false } = {}) {
@@ -178,6 +204,7 @@ export function initBooth() {
     busy = false;
     root.classList.remove("is-busy");
     countEl.textContent = "";
+    closeViewer();
     stopCamera();
     root.classList.remove("is-open");
     document.documentElement.classList.remove("booth-open");
@@ -203,16 +230,26 @@ export function initBooth() {
 
   root.addEventListener("click", (e) => {
     if (e.target.closest("[data-close]")) close();
-    else if (e.target.closest("[data-jump]")) {
-      e.preventDefault();
-      $("#booth-seniors").scrollIntoView({ behavior: "smooth" });
+    else {
+      const jump = e.target.closest("[data-jump]");
+      if (jump) {
+        e.preventDefault();
+        closeViewer();
+        $(jump.getAttribute("href")).scrollIntoView({ behavior: "smooth" });
+      }
     }
   });
 
   root.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { e.preventDefault(); close(); }
-    else if (e.key === "Tab") {
-      const f = [...win.querySelectorAll("button, a[href], input, textarea, select")].filter((el) => !el.closest("[hidden]") && !el.disabled);
+    if (e.key === "Escape") {
+      e.preventDefault();
+      if (viewer.list) closeViewer(); else close();
+    } else if (viewer.list && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      e.preventDefault();
+      showViewer(viewer.index + (e.key === "ArrowLeft" ? -1 : 1));
+    } else if (e.key === "Tab") {
+      const scope = viewer.list ? $("[data-viewer]") : win;
+      const f = [...scope.querySelectorAll("button, a[href], input, textarea, select")].filter((el) => !el.closest("[hidden]") && !el.disabled);
       if (!f.length) return;
       const first = f[0], last = f[f.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
@@ -220,13 +257,13 @@ export function initBooth() {
     }
   });
 
-  /* ------------------------------------------------------------ camera */
+  /* ------------------------------------------------------------ webcam */
   async function startCamera() {
     if (stream) return startLoop();
-    if (!navigator.mediaDevices?.getUserMedia) return showMessage("This browser can't use a camera here. Scroll down for senior photo bookings.", false);
+    if (!navigator.mediaDevices?.getUserMedia) return showMessage("This browser can't use a camera here. Scroll down for senior photos.", false);
     showMessage("Starting camera…", false);
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1620 }, height: { ideal: 1080 } }, audio: false });
       if (!isOpen) { s.getTracks().forEach((t) => t.stop()); return; }
       stream = s;
       video.srcObject = stream;
@@ -235,7 +272,7 @@ export function initBooth() {
       shutterBtn.disabled = false;
       startLoop();
     } catch {
-      showMessage("Camera is off. Allow camera access in your browser to take a Polaroid.", true);
+      showMessage("Camera is off. Allow camera access in your browser to take a photo.", true);
     }
   }
 
@@ -263,7 +300,7 @@ export function initBooth() {
     raf = requestAnimationFrame(frame);
   }
 
-  // Video → canvas: square cover-crop, mirrored like a selfie
+  // Video → canvas: cover-crop, mirrored like a selfie
   function draw(ctx, w, h) {
     const vw = video.videoWidth, vh = video.videoHeight;
     if (!vw) return;
@@ -290,78 +327,99 @@ export function initBooth() {
     countEl.textContent = "";
     flash();
     click();
+
+    const h = Math.min(video.videoHeight || 720, 1080), w = Math.round(h * 1.5);
     const photo = document.createElement("canvas");
-    const size = Math.min(video.videoHeight || 720, 1080);
-    photo.width = photo.height = size;
-    draw(photo.getContext("2d"), size, size);
+    photo.width = w; photo.height = h;
+    draw(photo.getContext("2d"), w, h);
+
+    exposures++;
+    const n = exposures;
     const date = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    const polaroid = await compose(photo, date);
-    const url = URL.createObjectURL(await new Promise((r) => polaroid.toBlob(r, "image/jpeg", 0.92)));
-    eject(url, photo.toDataURL("image/jpeg", 0.9), date);
-    shots++;
-    counter.textContent = `${shots} shot${shots === 1 ? "" : "s"}`;
-    await wait(900);
+    const thumb = photo.toDataURL("image/jpeg", 0.85);
+    const strip = await compose(photo, date, n);
+    const url = URL.createObjectURL(await new Promise((r) => strip.toBlob(r, "image/jpeg", 0.92)));
+    if (token !== cancelToken) { URL.revokeObjectURL(url); return; }
+
+    await loadIntoCamera(thumb, url, n, date);
     busy = false;
     root.classList.remove("is-busy");
   }
 
-  // Full Polaroid for saving: photo, typed date, and contact info printed on the border
-  async function compose(photo, date) {
-    await document.fonts.load('40px "Special Elite"').catch(() => {});
-    const W = 880, pad = 52, img = W - pad * 2, foot = 300, H = pad + img + foot;
-    const c = document.createElement("canvas"); c.width = W; c.height = H;
-    const g = c.getContext("2d");
-    g.fillStyle = "#f7f6f1"; g.fillRect(0, 0, W, H);
-    g.drawImage(photo, pad, pad, img, img);
-    const y0 = pad + img;
-    g.textAlign = "center"; g.textBaseline = "middle";
-    g.fillStyle = "#2a2a2c";
-    g.font = '44px "Special Elite", "Courier New", monospace';
-    g.fillText(date, W / 2, y0 + 70);
-    g.strokeStyle = "#d4d3cc"; g.lineWidth = 2;
-    g.beginPath(); g.moveTo(pad + 60, y0 + 125); g.lineTo(W - pad - 60, y0 + 125); g.stroke();
-    g.fillStyle = "#0f0f10";
-    g.font = '34px "Special Elite", "Courier New", monospace';
-    g.fillText(PRINT.title.toUpperCase(), W / 2, y0 + 170);
-    g.fillStyle = "#5e6269";
-    g.font = '26px "Special Elite", "Courier New", monospace';
-    g.fillText(PRINT.lines.join("  ·  "), W / 2, y0 + 215);
-    return c;
+  // The shot flies from the viewfinder into the camera, then the film winds on
+  async function loadIntoCamera(thumb, url, n, date) {
+    track.querySelector(".is-blank:last-child")?.remove();
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "filmcam-frame is-new";
+    el.setAttribute("aria-label", `Exposure ${n}, ${date}`);
+    el.style.setProperty("--develop", `${DEVELOP_MS}ms`);
+    el.innerHTML = `<img src="${thumb}" alt="" draggable="false">`;
+    track.prepend(el);
+    const shot = { url, n, date, el };
+    shots.unshift(shot);
+    el.addEventListener("click", () => openShots(shot));
+
+    counter.textContent = String(n).padStart(2, "0");
+    shotsEl.textContent = `${n} exposure${n === 1 ? "" : "s"}`;
+
+    if (!reduceMotion) {
+      const from = finder.getBoundingClientRect();
+      const fly = new Image();
+      fly.src = thumb;
+      fly.className = "filmcam-fly";
+      fly.style.cssText = `left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px`;
+      root.append(fly);
+      const to = el.getBoundingClientRect();
+      const scale = to.width / from.width;
+      const dx = to.left - from.left, dy = to.top - from.top;
+      const anim = fly.animate(
+        [{ transform: "none", opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 1 }],
+        { duration: 750, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" },
+      );
+      await anim.finished.catch(() => {});
+      fly.remove();
+
+      const wind = { duration: 650, easing: "cubic-bezier(.3,.1,.2,1)" };
+      track.animate([{ transform: `translateX(${-STEP}px)` }, { transform: "none" }], wind);
+      gate.animate([{ backgroundPosition: `${-STEP}px 0, ${-STEP}px 100%` }, { backgroundPosition: "0px 0, 0px 100%" }], wind);
+      $("[data-spool]").animate([{ transform: "rotate(0)" }, { transform: "rotate(220deg)" }], wind);
+      $("[data-lever]").animate([{ transform: "rotate(0)" }, { transform: "rotate(-48deg)" }, { transform: "rotate(0)" }], wind);
+    }
+    el.classList.remove("is-new");
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("is-developing")));
+    await wait(reduceMotion ? 0 : 650);
   }
 
-  // A Polaroid slides out of the slot, then lands on the pile and develops
-  function eject(saveUrl, imgSrc, date) {
-    $("[data-empty]")?.remove();
-    const el = document.createElement("figure");
-    el.className = "polaroid is-ejecting";
-    const rot = (Math.random() * 10 - 5).toFixed(1);
-    const n = tray.querySelectorAll(".polaroid").length;
-    el.style.setProperty("--r", `${rot}deg`);
-    el.style.setProperty("--x", `${(Math.random() * 30 - 15).toFixed(0)}px`);
-    el.style.setProperty("--y", `${Math.min(n, 6) * 14}px`);
-    el.style.zIndex = ++zTop;
-    el.innerHTML = `
-      <div class="polaroid-img"><img src="${imgSrc}" alt="Your Polaroid from ${esc(date)}"><span class="polaroid-film"></span></div>
-      <figcaption>
-        <span class="polaroid-date">${esc(date)}</span>
-        <span class="polaroid-print">
-          <strong>${esc(PRINT.title)}</strong>
-          <span><a href="mailto:${EMAIL}?subject=${encodeURIComponent("Senior photos")}">${EMAIL}</a> · <a href="/">${SITE}</a></span>
-        </span>
-      </figcaption>
-      <div class="polaroid-actions">
-        <a href="${saveUrl}" download="hailey-perng-polaroid-${Date.now()}.jpg">Save</a>
-        <button type="button" data-remove>Remove</button>
-      </div>`;
-    tray.prepend(el);
-    el.style.setProperty("--develop", `${DEVELOP_MS}ms`);
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("is-developing")));
-    setTimeout(() => el.classList.remove("is-ejecting"), 1400);
-    el.addEventListener("pointerdown", () => (el.style.zIndex = ++zTop));
-    el.querySelector("[data-remove]").addEventListener("click", () => {
-      URL.revokeObjectURL(saveUrl);
-      el.remove();
-    });
+  // A saved exposure: a strip of film with the contact details printed along the edge
+  async function compose(photo, date, n) {
+    await document.fonts.load('34px "Special Elite"').catch(() => {});
+    const W = 1500, side = 40, imgW = W - side * 2, imgH = Math.round(imgW / 1.5);
+    const holes = 80, topText = 50, footText = 78;
+    const H = holes + topText + imgH + footText + holes;
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d");
+    g.fillStyle = "#0f0f10"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#f4f4f2";
+    for (let x = 18; x < W; x += 75) {
+      for (const y of [18, H - 62]) {
+        g.beginPath();
+        if (g.roundRect) g.roundRect(x, y, 44, 44, 8); else g.rect(x, y, 44, 44);
+        g.fill();
+      }
+    }
+    g.drawImage(photo, side, holes + topText, imgW, imgH);
+
+    const type = (px) => `${px}px "Special Elite", "Courier New", monospace`;
+    g.textBaseline = "middle";
+    const y1 = holes + topText / 2, y2 = holes + topText + imgH + footText / 2;
+    g.fillStyle = "#9a9ea5"; g.font = type(26);
+    g.textAlign = "left"; g.fillText(date, side, y1);
+    g.textAlign = "right"; g.fillText(`▸ ${n}A`, W - side, y1);
+    g.textAlign = "right"; g.fillText(PRINT.lines.join("  ·  "), W - side, y2);
+    g.fillStyle = "#f4f4f2"; g.font = type(36);
+    g.textAlign = "left"; g.fillText(PRINT.title.toUpperCase(), side, y2);
+    return c;
   }
 
   function flash() {
@@ -387,19 +445,87 @@ export function initBooth() {
     } catch { /* sound is optional */ }
   }
 
-  /* ------------------------------------------------------------ seniors */
-  function renderPast(list) {
-    $("[data-past]").innerHTML = list.map((p, i) => `
-      <figure class="polaroid is-small" style="--r:${[-3, 2, -1.5, 3, -2.5, 1.5, -1, 2.5][i % 8]}deg">
-        <div class="polaroid-img">${p.src ? `<img src="${esc(p.src)}" alt="${esc(p.alt || p.name)}" loading="lazy">` : `<span class="polaroid-ph label">Photo</span>`}</div>
-        <figcaption>${esc(p.name)} ’${esc(String(p.year).slice(-2))}</figcaption>
-      </figure>`).join("");
+  /* ------------------------------------------------------------ photo viewer
+     Used for both the senior roll and the visitor's own exposures. */
+  const viewer = { list: null, index: 0, returnTo: null };
+  const viewerEl = $("[data-viewer]");
+  const viewerFig = $("[data-viewer-figure]");
+  const viewerBar = $("[data-viewer-bar]");
+  const viewerPrev = $("[data-viewer-prev]");
+  const viewerNext = $("[data-viewer-next]");
+
+  function openViewer(list, index, returnTo) {
+    viewer.list = list;
+    viewer.returnTo = returnTo || document.activeElement;
+    viewerEl.hidden = false;
+    showViewer(index);
+    $("[data-viewer-close]").focus();
   }
 
-  /* ------------------------------------------------------------ film roll
-     Frames come from data/timeline.json. Wind it with the arrows, a click, a swipe or
-     the arrow keys. The frame in the gate is developed; the rest stay negatives. */
-  function initRoll(entries) {
+  function closeViewer() {
+    if (!viewer.list) return;
+    viewer.list = null;
+    viewerEl.hidden = true;
+    viewerFig.innerHTML = "";
+    viewer.returnTo?.focus?.();
+  }
+
+  function showViewer(n) {
+    const list = viewer.list;
+    if (!list?.length) return closeViewer();
+    viewer.index = Math.max(0, Math.min(list.length - 1, n));
+    const item = list[viewer.index];
+    viewerFig.innerHTML = item.src
+      ? `<img src="${esc(item.src)}" alt="${esc(item.alt)}" draggable="false">`
+      : `<div class="booth-viewer-ph"><span class="label">Placeholder photo</span><strong>${esc(item.title)}</strong></div>`;
+    viewerBar.innerHTML = `
+      <p class="label">${esc(item.title)}${item.meta ? ` · ${esc(item.meta)}` : ""} · ${viewer.index + 1} of ${list.length}</p>
+      <div>${item.actions || ""}</div>`;
+    viewerPrev.disabled = viewer.index === 0;
+    viewerNext.disabled = viewer.index === list.length - 1;
+    item.onShow?.(viewer.index);
+  }
+
+  viewerPrev.addEventListener("click", () => showViewer(viewer.index - 1));
+  viewerNext.addEventListener("click", () => showViewer(viewer.index + 1));
+  $("[data-viewer-close]").addEventListener("click", closeViewer);
+  viewerEl.addEventListener("click", (e) => { if (e.target === viewerEl) closeViewer(); });
+  viewerBar.addEventListener("click", (e) => {
+    if (!e.target.closest("[data-remove-shot]")) return;
+    const item = viewer.list[viewer.index];
+    URL.revokeObjectURL(item.shot.url);
+    item.shot.el.remove();
+    shots.splice(shots.indexOf(item.shot), 1);
+    viewer.list.splice(viewer.index, 1);
+    if (viewer.list.length) showViewer(viewer.index);
+    else closeViewer();
+  });
+  let viewerStart = null;
+  viewerFig.addEventListener("pointerdown", (e) => { viewerStart = e.clientX; });
+  viewerFig.addEventListener("pointerup", (e) => {
+    if (viewerStart === null) return;
+    const dx = e.clientX - viewerStart;
+    viewerStart = null;
+    if (Math.abs(dx) > 40) showViewer(viewer.index + (dx < 0 ? 1 : -1));
+  });
+
+  function openShots(shot) {
+    const list = shots.map((s) => ({
+      shot: s,
+      src: s.url,
+      alt: `Your exposure from ${s.date}`,
+      title: `Exposure ${s.n}`,
+      meta: s.date,
+      actions: `<a class="booth-pill" href="${s.url}" download="perng-production-exposure-${s.n}.jpg">Save</a>
+                <button type="button" class="booth-pill" data-remove-shot>Remove</button>`,
+    }));
+    openViewer(list, shots.indexOf(shot), shot.el);
+  }
+
+  /* ------------------------------------------------------------ senior roll
+     Every photo in data/portraits.json is one exposure. Wind with the arrows, a swipe or the
+     arrow keys; the exposure in the gate is developed and the rest stay negatives. */
+  function initRoll(seniors) {
     const section = $("[data-roll]");
     const view = $("[data-roll-view]");
     const track = $("[data-roll-track]");
@@ -409,13 +535,22 @@ export function initBooth() {
     const prev = $("[data-roll-prev]");
     const next = $("[data-roll-next]");
     const pad = (n) => String(n).padStart(2, "0");
-    const items = [...entries, { blank: true, year: "Next", title: "This roll isn't finished.", text: "Let's shoot the next one together." }];
+    const yr = (s) => `’${String(s.year).slice(-2)}`;
+
+    const photos = seniors.flatMap((s) => s.photos.map((p) => ({
+      src: p.src,
+      alt: p.alt || `Senior portrait of ${s.name}`,
+      title: `${s.name} ${yr(s)}`,
+      meta: s.location,
+      actions: `<a class="booth-pill" href="#booth-seniors" data-jump>Book yours ↓</a>`,
+    })));
+    const items = [...photos, { blank: true }];
 
     section.hidden = false;
     film.innerHTML = items.map((e, n) => `
-      <button type="button" class="booth-roll-frame${e.blank ? " is-blank" : ""}" data-frame="${n}" aria-label="Frame ${n + 1}: ${esc(e.title)}">
+      <button type="button" class="booth-roll-frame${e.blank ? " is-blank" : ""}" data-frame="${n}" aria-label="${e.blank ? "Next exposure: yours" : `Exposure ${n + 1}: ${esc(e.title)}. Open photo.`}" ${e.blank ? "" : `data-cursor-label="View"`}>
         <span class="booth-roll-img">
-          ${e.blank ? `<span class="label">Unexposed</span>` : e.src ? `<img src="${esc(e.src)}" alt="" loading="lazy" draggable="false">` : `<span class="booth-roll-ph">${esc(e.year)}</span>`}
+          ${e.blank ? `<span class="label">Unexposed</span>` : e.src ? `<img src="${esc(e.src)}" alt="" loading="lazy" draggable="false">` : `<span class="booth-roll-ph">${esc(e.title)}</span>`}
         </span>
       </button>`).join("");
     const frames = [...film.children];
@@ -434,24 +569,29 @@ export function initBooth() {
         f.classList.toggle("is-active", k === current);
         if (k === current) f.setAttribute("aria-current", "true"); else f.removeAttribute("aria-current");
       });
-      count.textContent = `Frame ${pad(current + 1)} / ${pad(items.length)}`;
+      count.textContent = `Exposure ${pad(current + 1)} / ${pad(items.length)}`;
       prev.disabled = current === 0;
       next.disabled = current === items.length - 1;
-      caption.innerHTML = `
-        <p class="label">${esc(e.year)}</p>
-        <h4>${esc(e.title)}</h4>
-        <p>${esc(e.text)}</p>
-        ${e.blank ? `<a class="booth-pill is-dark" href="#booth-seniors" data-jump>Book your senior photos ↓</a>` : ""}`;
+      caption.innerHTML = e.blank
+        ? `<h4>This one's yours.</h4><a class="booth-pill is-dark" href="#booth-seniors" data-jump>Book your senior photos ↓</a>`
+        : `<h4>${esc(e.title)}</h4><p>${esc(e.meta)}</p><p class="label">Click any exposure to explore</p>`;
       place();
     }
+
+    // Winding through the viewer keeps the strip in step
+    photos.forEach((p) => { p.onShow = (i) => { if (i !== current) go(i); }; });
 
     prev.addEventListener("click", () => go(current - 1));
     next.addEventListener("click", () => go(current + 1));
     film.addEventListener("click", (e) => {
       const f = e.target.closest("[data-frame]");
-      if (f && !swiped) go(+f.dataset.frame);
+      if (!f || swiped) return;
+      const n = +f.dataset.frame;
+      go(n);
+      if (!items[n].blank) openViewer(photos, n, f);
     });
     section.addEventListener("keydown", (e) => {
+      if (viewer.list) return;
       if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); }
       else if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); }
     });

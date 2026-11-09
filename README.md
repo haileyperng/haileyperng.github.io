@@ -7,8 +7,8 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 
 | URL | File | What it is |
 | --- | --- | --- |
-| `/` | `index.html` | Home: an exploded a6700-style camera with a Build mode; clicking it opens the Photo Booth |
-| `/#booth` | `js/photobooth.js` | Photo Booth: webcam Polaroids, then senior-photo booking info and past seniors |
+| `/` | `index.html` | Home: an exploded a6700-style camera with a Build mode; clicking it opens it up |
+| `/#booth` | `js/photobooth.js` | Photo Booth: webcam shots wound onto a film camera, a roll of senior photos, and booking info |
 | `/about/#purpose` | `about/index.html` | "What keeps me charged": energy, goal, purpose (the camera's battery links here) |
 | `/film/` | `film/index.html` | All films, with Grid / List / Explore views and tag filters |
 | `/film/project.html?id=…` | `film/project.html` | One film (template filled from `data/films.json`) |
@@ -41,11 +41,8 @@ and `thumbnail` to an image path like `/assets/film/my-film.jpg`.
 **A photo series:** add an entry to `data/photos.json`. Put images in `assets/photography/`
 and list them under `images` with `src`, `alt` and `aspect` (e.g. `"4 / 5"`).
 
-**A senior portrait:** add an entry to `data/portraits.json` with `name`, `school`, `year`,
-`location` and `src` (e.g. `/assets/portraits/maya.jpg`). They show as Polaroids under "Past seniors" in the Photo Booth.
-
-**The film roll in the Photo Booth:** edit `data/timeline.json`. Each entry is one frame, oldest first.
-Set `src` to a photo path (e.g. `/assets/roll/2024-broadcast.jpg`) to replace the placeholder.
+**Senior photos:** edit `data/portraits.json`. Each senior has a `photos` list, and every photo
+becomes one exposure on the roll in the Photo Booth. Set `src` to a path like `/assets/seniors/adriana-01.jpg`.
 
 Tags in either file become the filter buttons automatically.
 

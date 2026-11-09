@@ -444,15 +444,15 @@ html.booth-open { overflow: hidden; }
 
 .booth-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
-/* Shooting area: viewfinder + shutter on the left, Polaroid pile on the right */
-.booth-shoot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; padding: 28px; min-height: min(660px, calc(100vh - 110px)); align-items: start; }
-.booth-cam { position: relative; background: #111113; border-radius: 10px; padding: 14px 14px 0; box-shadow: 0 0 0 1px #2c2c2f inset; }
-.booth-finder { position: relative; aspect-ratio: 1; border-radius: 4px; overflow: hidden; background: #000; }
+/* Shooting area: viewfinder + shutter on the left, film camera on the right */
+.booth-shoot { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; padding: 28px; align-items: center; }
+.booth-cam { background: #111113; border-radius: 10px; padding: 14px 14px 0; box-shadow: 0 0 0 1px #2c2c2f inset; }
+.booth-finder { position: relative; aspect-ratio: 3 / 2; border-radius: 4px; overflow: hidden; background: #000; }
 .booth-view { position: absolute; inset: 0; width: 100%; height: 100%; }
 .booth-message { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; background: #111; color: #b9b9bd; }
 .booth-message[hidden] { display: none; }
 .booth-count {
-  position: absolute; inset: 0; display: grid; place-items: center; font: 600 clamp(72px, 14vw, 150px)/1 var(--font-sans);
+  position: absolute; inset: 0; display: grid; place-items: center; font: 600 clamp(72px, 12vw, 130px)/1 var(--font-sans);
   color: #fff; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); pointer-events: none;
 }
 .booth-count:empty { display: none; }
@@ -469,57 +469,50 @@ html.booth-open { overflow: hidden; }
 .booth-shutter:active { transform: scale(0.94); }
 .booth-shutter:disabled { filter: grayscale(1) brightness(0.6); cursor: default; transform: none; }
 .booth.is-busy .booth-shutter { pointer-events: none; opacity: 0.6; }
-/* The film slot the Polaroid comes out of */
-.booth-slot { height: 14px; margin: 0 18%; border-radius: 3px 3px 0 0; background: #050506; box-shadow: inset 0 3px 4px #000; }
 
-.booth-tray { position: relative; min-height: 520px; display: grid; justify-items: center; align-content: start; }
-.booth-tray-empty { margin-top: 40%; text-align: center; color: #6b6b70; line-height: 1.8; }
+/* Film camera with its back open: canister, film gate, take-up spool */
+.filmcam { min-width: 0; }
+.filmcam-top { position: relative; display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 14px 0 46px; border-radius: 10px 10px 0 0; background: linear-gradient(180deg, #eceef0, #b6b9be 55%, #8d9096); color: #0f0f10; }
+.filmcam-rewind { position: absolute; left: 12px; top: 8px; width: 26px; height: 26px; border-radius: 50%; background: repeating-conic-gradient(#3a3c40 0 10deg, #1a1b1d 10deg 20deg); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+.filmcam-name { font: 500 12px var(--font-mono); letter-spacing: 0.14em; }
+.filmcam-counter { margin-left: auto; padding: 3px 7px; border-radius: 4px; background: #0f0f10; color: #f4f4f2; font: 500 14px var(--font-mono); }
+.filmcam-lever { width: 44px; height: 7px; border-radius: 4px; background: #2a2b2e; transform-origin: 100% 50%; }
+.filmcam-back { display: flex; align-items: stretch; background: #2a2b2e; padding: 12px 0; border-radius: 0 0 10px 10px; box-shadow: inset 0 6px 14px rgba(0, 0, 0, 0.55); overflow: hidden; }
+.filmcam-can { flex: none; width: 52px; margin-left: 10px; display: grid; place-items: center; border-radius: 6px; background: linear-gradient(90deg, #1a1b1d, #55575c 40%, #0c0c0d); color: #e6e7e9; font: 500 9px/1.2 var(--font-mono); text-align: center; }
+.filmcam-gate {
+  position: relative; flex: 1; min-width: 0; height: 174px; overflow: hidden; background-color: #0f0f10;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='29'%3E%3Crect x='7' y='7' width='16' height='15' rx='3' fill='%232a2b2e'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='29'%3E%3Crect x='7' y='7' width='16' height='15' rx='3' fill='%232a2b2e'/%3E%3C/svg%3E");
+  background-repeat: repeat-x; background-position: 0px 0, 0px 100%;
+}
+.filmcam-track { position: absolute; left: 8px; top: 29px; display: flex; gap: 8px; }
+.filmcam-frame { display: block; flex: none; width: 172px; height: 116px; overflow: hidden; background: #1a1b1d; padding: 0; }
+.filmcam-frame img { width: 100%; height: 100%; object-fit: cover; filter: invert(1) sepia(0.5); }
+.filmcam-frame.is-new { visibility: hidden; }
+.filmcam-frame.is-developing img { filter: none; transition: filter var(--develop, 4s) ease-in; }
+button.filmcam-frame:hover { outline: 2px solid #e8e8ea; outline-offset: -2px; }
+.filmcam-spool { flex: none; width: 52px; margin-right: 10px; border-radius: 50%; align-self: center; height: 52px; background: repeating-conic-gradient(#8d9096 0 30deg, #3a3c40 30deg 60deg); box-shadow: 0 0 0 4px #1a1b1d; }
+.filmcam-note { margin-top: 12px; color: #8a8a8f; text-transform: none; letter-spacing: 0; line-height: 1.5; }
+.filmcam-fly { position: fixed; z-index: 4; transform-origin: 0 0; pointer-events: none; object-fit: cover; }
 
-/* Polaroid */
-.polaroid {
-  --r: 0deg; --x: 0px; --y: 0px;
-  width: min(300px, 100%); padding: 14px 14px 0; background: #f7f6f1; color: #2a2a2c; border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 30px rgba(0, 0, 0, 0.35);
-  transform: translate(var(--x), var(--y)) rotate(var(--r)); transition: transform 0.6s var(--ease);
-}
-.booth-tray .polaroid { grid-area: 1 / 1; position: relative; }
-.polaroid-img { position: relative; aspect-ratio: 1; overflow: hidden; background: #1b1b1c; }
-.polaroid-img img { width: 100%; height: 100%; object-fit: cover; }
-.polaroid figcaption { height: 64px; display: grid; place-items: center; font: 400 15px/1.2 "Special Elite", "Courier New", monospace; }
-.polaroid-ph { position: absolute; inset: 0; display: grid; place-items: center; color: #8a8a8f; background: repeating-linear-gradient(135deg, #e6e6e2 0 8px, #dcdcd7 8px 16px); }
-.booth-tray .polaroid figcaption { height: auto; display: grid; gap: 6px; padding: 10px 6px 14px; text-align: center; }
-.polaroid-date { font: 400 16px/1 "Special Elite", "Courier New", monospace; }
-.polaroid-print { display: grid; gap: 3px; padding-top: 8px; border-top: 1px solid #dcdbd4; font: 400 10.5px/1.4 "Special Elite", "Courier New", monospace; color: #4a4b50; }
-.polaroid-print strong { font-weight: 400; font-size: 13px; color: #0f0f10; text-transform: uppercase; letter-spacing: 0.04em; }
-.polaroid-print a { color: inherit; }
-.polaroid-print a:hover { color: #0f0f10; text-decoration: underline; }
-.polaroid-actions { position: absolute; right: 10px; bottom: 110px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
-.polaroid:hover .polaroid-actions, .polaroid:focus-within .polaroid-actions { opacity: 1; }
-.polaroid-actions a, .polaroid-actions button { padding: 5px 9px; border-radius: 999px; background: rgba(15, 15, 16, 0.75); color: #fff; font: 500 11px var(--font-sans); backdrop-filter: blur(4px); }
-.booth-tray .polaroid:hover { transform: translate(var(--x), calc(var(--y) - 6px)) rotate(0deg); }
-
-/* Eject from the slot, then develop: dark and murky, slowly coming up */
-.polaroid.is-ejecting { animation: polaroid-eject 1.4s var(--ease) both; }
-@keyframes polaroid-eject {
-  0% { transform: translate(-80%, 45%) rotate(0deg) scale(0.9); clip-path: inset(0 0 100% 0); }
-  45% { transform: translate(-80%, 55%) rotate(0deg) scale(0.9); clip-path: inset(0 0 0 0); }
-  100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); }
-}
-@keyframes polaroid-eject-down {
-  0% { transform: translateY(-40%) rotate(0deg); clip-path: inset(0 0 100% 0); }
-  50% { transform: translateY(0) rotate(0deg); clip-path: inset(0 0 0 0); }
-  100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); }
-}
-.polaroid-film { position: absolute; inset: 0; background: #2b2a26; opacity: 1; pointer-events: none; }
-.polaroid-img img { filter: sepia(0.8) contrast(0.5) brightness(0.5) blur(2px); }
-.polaroid.is-developing @keyframes polaroid-eject-down {
-  0% { transform: translateY(-40%) rotate(0deg); clip-path: inset(0 0 100% 0); }
-  50% { transform: translateY(0) rotate(0deg); clip-path: inset(0 0 0 0); }
-  100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); }
-}
-.polaroid-film { opacity: 0; transition: opacity var(--develop, 5s) ease-in; }
-.polaroid.is-developing .polaroid-img img { filter: none; transition: filter calc(var(--develop, 5s) * 1.3) ease-out; }
-.booth-past .polaroid-img img { filter: none; }
+/* Photo viewer, over the whole booth window */
+.booth-viewer { position: absolute; inset: 38px 0 0; z-index: 3; display: grid; grid-template-columns: 60px minmax(0, 1fr) 60px; grid-template-rows: minmax(0, 1fr) auto; align-items: center; justify-items: center; background: #0c0c0d; }
+.booth-viewer[hidden] { display: none; }
+.booth-viewer-figure { grid-column: 2; grid-row: 1; position: relative; width: 100%; height: 100%; touch-action: pan-y; user-select: none; }
+.booth-viewer-figure img { position: absolute; inset: 14px 0; width: 100%; height: calc(100% - 28px); object-fit: contain; }
+.booth-viewer-ph { position: absolute; inset: 14px 0; margin: auto; aspect-ratio: 2 / 3; max-width: 100%; height: calc(100% - 28px); display: grid; place-content: center; gap: 8px; text-align: center; padding: 16px; background: repeating-linear-gradient(135deg, #2a2a2d 0 10px, #252528 10px 20px); color: #9a9ea5; }
+.booth-viewer-ph strong { font: 500 24px var(--font-sans); color: #e8e8ea; }
+.booth-viewer-nav, .booth-viewer-close { width: 40px; height: 40px; border-radius: 50%; color: #e8e8ea; font-size: 17px; line-height: 1; box-shadow: inset 0 0 0 1px #4a4a4d; background: #0c0c0d; }
+.booth-viewer-nav:hover:not(:disabled), .booth-viewer-close:hover { background: #e8e8ea; color: #111; }
+.booth-viewer-nav:disabled { opacity: 0.25; cursor: default; }
+.booth-viewer-nav:first-of-type { grid-column: 1; grid-row: 1; }
+.booth-viewer-nav:last-of-type { grid-column: 3; grid-row: 1; }
+.booth-viewer-close { position: absolute; right: 10px; top: 10px; z-index: 1; font-size: 22px; }
+.booth-viewer-bar { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; background: #19191b; border-top: 1px solid #000; }
+.booth-viewer-bar .label { color: #b9bcc1; }
+.booth-viewer-bar > div { display: flex; gap: 6px; }
+.booth-viewer-bar .booth-pill { color: #e8e8ea; }
 
 /* Senior photos booking */
 .booth-seniors { padding: 40px 28px 48px; background: #f4f4f2; color: #0f0f10; }
@@ -542,10 +535,6 @@ html.booth-open { overflow: hidden; }
 .booth-pill { display: inline-block; padding: 8px 14px; border-radius: 999px; border: 1px solid #4a4a4d; font: 500 13px var(--font-sans); color: inherit; }
 .booth-pill.is-dark { background: #0f0f10; color: #f4f4f2; border-color: #0f0f10; }
 .booth-message .booth-pill { color: #e8e8ea; }
-.booth-past-title { margin-top: 40px; }
-.booth-past { display: flex; gap: 18px; overflow-x: auto; padding: 18px 6px 24px; }
-.booth-past .polaroid { flex: none; width: 168px; padding: 9px 9px 0; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), 0 8px 18px rgba(0, 0, 0, 0.12); }
-.booth-past .polaroid figcaption { height: 42px; font-size: 12px; }
 
 .booth-flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 5; }
 .booth-flash.go { animation: booth-flash 0.8s ease-out; }
@@ -554,18 +543,16 @@ html.booth-open { overflow: hidden; }
 @media (max-width: 760px) {
   .booth { padding: 0; }
   .booth-window { width: 100%; height: 100%; border-radius: 0; }
-  .booth-shoot { grid-template-columns: 1fr; padding: 16px; min-height: 0; }
-  .booth-tray { min-height: 380px; margin-top: -28px; }
-  .booth-tray .polaroid { width: 250px; }
-  .polaroid.is-ejecting { animation-name: polaroid-eject-down; }
-  .booth-tray-empty { margin-top: 24px; }
+  .booth-shoot { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .booth-viewer { grid-template-columns: 44px minmax(0, 1fr) 44px; }
+  .booth-viewer-nav { width: 34px; height: 34px; }
   .booth-seniors { padding: 32px 16px 40px; }
   .booth-seniors-grid { grid-template-columns: minmax(0, 1fr); }
   .booth-book { padding: 4px 8px; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .booth-flash.go { animation-duration: 0.2s; }
-  .polaroid.is-ejecting { animation: none; }
+  .filmcam-frame.is-developing img { transition: none; }
 }
 
 /* ---------- Photo Booth: film roll ---------- */
@@ -594,7 +581,7 @@ html.booth-open { overflow: hidden; }
 .booth-roll-frame:hover .booth-roll-img { filter: invert(0.75); }
 .booth-roll-frame.is-active .booth-roll-img { filter: none; }
 .booth-roll-img img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-.booth-roll-ph { display: grid; place-items: center; width: 100%; height: 100%; font: 500 clamp(36px, 6vw, 60px)/1 var(--font-mono); letter-spacing: -0.04em; color: #e6e7e9; background: repeating-linear-gradient(135deg, #34363a 0 12px, #2c2e31 12px 24px); }
+.booth-roll-ph { display: grid; place-items: center; width: 100%; height: 100%; font: 500 clamp(18px, 2.6vw, 26px)/1.1 var(--font-mono); letter-spacing: -0.02em; color: #e6e7e9; background: repeating-linear-gradient(135deg, #34363a 0 12px, #2c2e31 12px 24px); }
 .booth-roll-frame.is-blank .booth-roll-img { background: #1a1b1d; filter: none; }
 .booth-roll-frame.is-blank .label { color: #6b6e74; }
 .booth-roll-caption { min-height: 118px; max-width: 54ch; margin: 22px auto 0; padding: 0 28px; text-align: center; }
