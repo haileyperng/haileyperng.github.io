@@ -3,6 +3,7 @@
 //  - Live webcam viewfinder (mirrored, square like instant film).
 //  - Shutter: 3-2-1 countdown, white flash, click sound, then a Polaroid ejects from the
 //    slot and slowly develops. Polaroids pile up beside the camera; each can be saved.
+//  - A film roll of "how I got here" (data/timeline.json), wound frame by frame.
 //  - Below: how to book senior photos, contact details, a booking form and past seniors
 //    (data/portraits.json) shown as Polaroids.
 //  - Photos never leave the visitor's device: they live in memory until the page closes.
@@ -51,6 +52,39 @@ export function initBooth() {
           <div class="booth-tray" data-tray aria-label="Your Polaroids">
             <p class="booth-tray-empty label" data-empty>Your Polaroids land here.<br>They stay on this device.</p>
           </div>
+        </section>
+
+        <section class="booth-roll" data-roll aria-labelledby="booth-roll-title" hidden>
+          <div class="booth-roll-head">
+            <div>
+              <p class="label">Roll 01 · 2020 – Now</p>
+              <h3 id="booth-roll-title">How I got here</h3>
+            </div>
+            <div class="booth-roll-controls">
+              <span class="label" data-roll-count></span>
+              <button type="button" class="booth-roll-btn" data-roll-prev aria-label="Previous frame">←</button>
+              <button type="button" class="booth-roll-btn" data-roll-next aria-label="Next frame">→</button>
+            </div>
+          </div>
+          <div class="booth-roll-view" data-roll-view>
+            <div class="booth-roll-track" data-roll-track>
+              <svg class="booth-roll-can" viewBox="0 0 96 180" aria-hidden="true">
+                <defs>
+                  <linearGradient id="booth-can" x1="0" x2="1"><stop offset="0" stop-color="#26272a"/><stop offset=".35" stop-color="#55575c"/><stop offset=".75" stop-color="#1a1b1d"/><stop offset="1" stop-color="#0c0c0d"/></linearGradient>
+                  <linearGradient id="booth-cap" x1="0" x2="1"><stop offset="0" stop-color="#8d9096"/><stop offset=".35" stop-color="#eceef0"/><stop offset=".7" stop-color="#b6b9be"/><stop offset="1" stop-color="#64676d"/></linearGradient>
+                </defs>
+                <rect x="36" y="0" width="28" height="10" fill="#3a3c40"/>
+                <rect x="6" y="8" width="84" height="16" rx="3" fill="url(#booth-cap)"/>
+                <rect x="6" y="156" width="84" height="16" rx="3" fill="url(#booth-cap)"/>
+                <rect x="10" y="22" width="78" height="136" fill="url(#booth-can)"/>
+                <rect x="26" y="22" width="36" height="136" fill="#e6e7e9"/>
+                <text transform="translate(50 90) rotate(-90)" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" fill="#0f0f10">HP 400 · ROLL 01</text>
+                <rect x="86" y="30" width="10" height="120" fill="#050506"/>
+              </svg>
+              <div class="booth-roll-film" data-roll-film></div>
+            </div>
+          </div>
+          <div class="booth-roll-caption" data-roll-caption aria-live="polite"></div>
         </section>
 
         <section class="booth-seniors" id="booth-seniors" aria-labelledby="booth-seniors-title">
@@ -120,6 +154,7 @@ export function initBooth() {
   let zTop = 1;
 
   loadJSON("/data/portraits.json").then(renderPast).catch(() => {});
+  loadJSON("/data/timeline.json").then(initRoll).catch(() => {});
 
   /* ------------------------------------------------------------ open / close */
   function open({ fromHash = false } = {}) {
@@ -359,6 +394,79 @@ export function initBooth() {
         <div class="polaroid-img">${p.src ? `<img src="${esc(p.src)}" alt="${esc(p.alt || p.name)}" loading="lazy">` : `<span class="polaroid-ph label">Photo</span>`}</div>
         <figcaption>${esc(p.name)} ’${esc(String(p.year).slice(-2))}</figcaption>
       </figure>`).join("");
+  }
+
+  /* ------------------------------------------------------------ film roll
+     Frames come from data/timeline.json. Wind it with the arrows, a click, a swipe or
+     the arrow keys. The frame in the gate is developed; the rest stay negatives. */
+  function initRoll(entries) {
+    const section = $("[data-roll]");
+    const view = $("[data-roll-view]");
+    const track = $("[data-roll-track]");
+    const film = $("[data-roll-film]");
+    const caption = $("[data-roll-caption]");
+    const count = $("[data-roll-count]");
+    const prev = $("[data-roll-prev]");
+    const next = $("[data-roll-next]");
+    const pad = (n) => String(n).padStart(2, "0");
+    const items = [...entries, { blank: true, year: "Next", title: "This roll isn't finished.", text: "Let's shoot the next one together." }];
+
+    section.hidden = false;
+    film.innerHTML = items.map((e, n) => `
+      <button type="button" class="booth-roll-frame${e.blank ? " is-blank" : ""}" data-frame="${n}" aria-label="Frame ${n + 1}: ${esc(e.title)}">
+        <span class="booth-roll-img">
+          ${e.blank ? `<span class="label">Unexposed</span>` : e.src ? `<img src="${esc(e.src)}" alt="" loading="lazy" draggable="false">` : `<span class="booth-roll-ph">${esc(e.year)}</span>`}
+        </span>
+      </button>`).join("");
+    const frames = [...film.children];
+
+    let current = 0, swiped = false, startX = null;
+
+    function place() {
+      const f = frames[current];
+      track.style.transform = `translateX(${Math.round(view.clientWidth / 2 - (f.offsetLeft + f.offsetWidth / 2))}px)`;
+    }
+
+    function go(n) {
+      current = Math.max(0, Math.min(items.length - 1, n));
+      const e = items[current];
+      frames.forEach((f, k) => {
+        f.classList.toggle("is-active", k === current);
+        if (k === current) f.setAttribute("aria-current", "true"); else f.removeAttribute("aria-current");
+      });
+      count.textContent = `Frame ${pad(current + 1)} / ${pad(items.length)}`;
+      prev.disabled = current === 0;
+      next.disabled = current === items.length - 1;
+      caption.innerHTML = `
+        <p class="label">${esc(e.year)}</p>
+        <h4>${esc(e.title)}</h4>
+        <p>${esc(e.text)}</p>
+        ${e.blank ? `<a class="booth-pill is-dark" href="#booth-seniors" data-jump>Book your senior photos ↓</a>` : ""}`;
+      place();
+    }
+
+    prev.addEventListener("click", () => go(current - 1));
+    next.addEventListener("click", () => go(current + 1));
+    film.addEventListener("click", (e) => {
+      const f = e.target.closest("[data-frame]");
+      if (f && !swiped) go(+f.dataset.frame);
+    });
+    section.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); }
+    });
+    view.addEventListener("pointerdown", (e) => { startX = e.clientX; swiped = false; });
+    addEventListener("pointerup", (e) => {
+      if (startX === null) return;
+      const dx = e.clientX - startX;
+      startX = null;
+      if (Math.abs(dx) > 40) { swiped = true; go(current + (dx < 0 ? 1 : -1)); }
+    });
+    addEventListener("pointercancel", () => { startX = null; });
+
+    // The booth starts hidden, so position the strip once it has a size
+    new ResizeObserver(place).observe(view);
+    go(0);
   }
 
   $("[data-form]").addEventListener("submit", (e) => {
