@@ -537,7 +537,8 @@ export function initBooth() {
     const pad = (n) => String(n).padStart(2, "0");
     const yr = (s) => `’${String(s.year).slice(-2)}`;
 
-    const photos = seniors.flatMap((s) => s.photos.map((p) => ({
+    // (a browser may briefly hold an older copy of the data with one photo per senior)
+    const photos = seniors.flatMap((s) => (s.photos || [{ src: s.src, alt: s.alt }]).map((p) => ({
       src: p.src,
       alt: p.alt || `Senior portrait of ${s.name}`,
       title: `${s.name} ${yr(s)}`,
