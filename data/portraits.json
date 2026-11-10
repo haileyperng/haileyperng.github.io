@@ -29,31 +29,31 @@
     "name": "Daniel",
     "year": "2026",
     "location": "Carbon Canyon Regional Park",
-    "cover": null,
+    "cover": "/assets/seniors/daniel-03.jpg",
     "photos": [
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/daniel-01.jpg",
+        "alt": "Daniel in a navy sweater and cream trousers leaning on a tree trunk in morning light"
       },
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/daniel-02.jpg",
+        "alt": "Daniel resting a hand on a tree trunk under sunlit branches"
       },
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/daniel-03.jpg",
+        "alt": "Daniel in a white shirt and loose black tie, reaching up to a concrete beam beside graffiti"
       },
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/daniel-04.jpg",
+        "alt": "Daniel adjusting his tie against a graffiti wall, shot at a tilted angle"
       },
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/daniel-05.jpg",
+        "alt": "Daniel sitting in the mouth of a round concrete culvert, seen from below"
       },
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/daniel-06.jpg",
+        "alt": "Daniel sitting on a concrete ledge by a chain-link fence under trees and sky"
       }
     ]
   }
