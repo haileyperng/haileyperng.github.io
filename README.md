@@ -10,7 +10,7 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 | `/` | `index.html` | Home: an exploded a6700-style camera with a Build mode; clicking it opens it up |
 | `/#booth` | `js/photobooth.js` | Photo Booth: webcam shots wound onto a film camera, a roll of senior photos, and booking info |
 | `/about/#purpose` | `about/index.html` | "What keeps me charged": energy, goal, purpose (the camera's battery links here) |
-| `/film/` | `film/index.html` | All films, with Grid / List / Explore views and tag filters |
+| `/film/` | `film/index.html` | One grid of all films (from `data/films.json`) |
 | `/film/project.html?id=…` | `film/project.html` | One film (template filled from `data/films.json`) |
 | `/photography/` | `photography/index.html` | One grid of all photos (from `data/photos.json`); click to enlarge |
 | `/about/` | `about/index.html` | Bio, experience, education, recognition, kit |
@@ -27,13 +27,13 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
   `SECTIONS` sets which part links where and what its callout says; `STEPS` is the Build-mode checklist
 - `js/photobooth.js`: the Photo Booth window. Photos stay in the visitor's browser; nothing is uploaded
 - `js/camera.js`: 2D drawing of the camera, used automatically if a browser can't run 3D
-- `js/discovery.js`: Grid / List / Explore views, filters and shuffle for Film
 - `js/lightbox.js`: full-size photo viewer on the Photography page
 - `js/data.js`: helpers for loading the JSON content
 
 ## Adding work
 
 **A film:** add an entry to `data/films.json` (copy an existing one, give it a unique `id`).
+Leave any detail blank (`""`) and it is simply not shown.
 Set `embed` to a Vimeo/YouTube embed URL, e.g. `https://player.vimeo.com/video/123456`,
 and `thumbnail` to an image path like `/assets/film/my-film.jpg`.
 
@@ -43,8 +43,6 @@ Put images in `assets/photography/` and give each `src`, `alt` and `aspect` (e.g
 **Senior photos:** edit `data/portraits.json`. Each senior is one exposure on the roll in the Photo Booth.
 Set `cover` to the photo shown on the film and list every photo from the session under `photos`,
 with paths like `/assets/seniors/adriana-01.jpg`. Without a `cover`, the first photo is used.
-
-Tags in `data/films.json` become the filter buttons automatically.
 
 ## Previewing locally
 

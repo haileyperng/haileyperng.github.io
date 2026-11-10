@@ -22,38 +22,24 @@
       <p class="page-intro">Placeholder intro: a sentence or two about the kind of films you make. Projects come from data/films.json.</p>
     </section>
 
-    <section class="discovery" data-discovery>
-      <div class="discovery-controls">
-        <div class="seg" data-filters aria-label="Filter by type"></div>
-        <div class="seg">
-          <span class="label" data-count></span>
-          <div class="seg" data-views aria-label="View">
-            <button class="chip" data-view="grid">Grid</button>
-            <button class="chip" data-view="list">List</button>
-            <button class="chip" data-view="scatter">Explore</button>
-          </div>
-          <button class="chip" data-shuffle>Shuffle</button>
-        </div>
-      </div>
-      <div class="discovery-stage" data-stage></div>
-    </section>
+    <div class="discovery-stage view-grid" data-grid></div>
   </main>
 
   <footer class="site-footer" data-site-footer></footer>
 
   <script type="module">
-    import { loadJSON } from "/js/data.js";
-    import { initDiscovery } from "/js/discovery.js";
+    import { loadJSON, esc, mediaHTML } from "/js/data.js";
 
+    // One grid of every film, in the order listed in data/films.json
     const films = await loadJSON("/data/films.json");
-    initDiscovery({
-      root: document.querySelector("[data-discovery]"),
-      items: films,
-      hrefFor: (f) => `/film/project.html?id=${encodeURIComponent(f.id)}`,
-      metaFor: (f) => `${f.type} · ${f.role}`,
-      cursorLabel: "Watch",
-      storageKey: "view:film",
-    });
+    document.querySelector("[data-grid]").innerHTML = films.map((f) => `
+      <a class="card" href="/film/project.html?id=${encodeURIComponent(f.id)}" data-cursor-label="Watch">
+        <div class="card-media">${mediaHTML({ src: f.thumbnail, alt: f.title, aspect: f.aspect, label: f.title })}</div>
+        <div class="card-info">
+          <span class="card-title">${esc(f.title)}</span>
+          <span class="label">${esc(f.year)}</span>
+        </div>
+      </a>`).join("");
   </script>
 </body>
 </html>

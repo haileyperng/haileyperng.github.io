@@ -36,26 +36,23 @@
 
       main.innerHTML = `
         <section class="page-head">
-          <p class="label"><a href="/film/">Film</a> / ${esc(f.type)} · ${esc(f.year)}</p>
+          <p class="label"><a href="/film/">Film</a> / ${[f.type, f.year].filter(Boolean).map(esc).join(" · ")}</p>
           <h1>${esc(f.title)}</h1>
-          <p class="page-intro">${esc(f.logline)}</p>
+          ${f.logline ? `<p class="page-intro">${esc(f.logline)}</p>` : ""}
         </section>
 
         <div class="detail-media">
           ${f.embed
             ? `<iframe src="${esc(f.embed)}" title="${esc(f.title)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`
-            : `<div class="ph" style="--ar:16/9">Video embed (Vimeo / YouTube)</div>`}
+            : `<div class="ph" style="--ar:16/9">Video coming soon</div>`}
         </div>
 
         <div class="detail-body">
           <dl class="facts">
-            <dt class="label">Role</dt><dd>${esc(f.role)}</dd>
-            <dt class="label">Year</dt><dd>${esc(f.year)}</dd>
-            <dt class="label">Runtime</dt><dd>${esc(f.runtime)}</dd>
-            <dt class="label">Format</dt><dd>${esc(f.format)}</dd>
-            ${f.credits.map(([k, v]) => `<dt class="label">${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}
+            ${[["Role", f.role], ["Year", f.year], ["Runtime", f.runtime], ["Format", f.format], ...(f.credits || [])]
+              .filter(([, v]) => v).map(([k, v]) => `<dt class="label">${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}
           </dl>
-          <div class="prose">${f.synopsis.map((p) => `<p>${esc(p)}</p>`).join("")}</div>
+          <div class="prose">${(f.synopsis || []).map((p) => `<p>${esc(p)}</p>`).join("")}</div>
         </div>
 
         <h2 class="label section-title">Stills</h2>
@@ -63,10 +60,10 @@
           ${f.stills.map((src, n) => mediaHTML({ src, alt: `${f.title} still ${n + 1}`, aspect: "16 / 9", label: `Still ${n + 1}` })).join("")}
         </div>
 
-        <nav class="pager" aria-label="More films">
+        ${films.length > 1 ? `<nav class="pager" aria-label="More films">
           <a href="/film/project.html?id=${encodeURIComponent(prev.id)}"><span class="label">← Previous</span>${esc(prev.title)}</a>
           <a href="/film/project.html?id=${encodeURIComponent(next.id)}"><span class="label">Next →</span>${esc(next.title)}</a>
-        </nav>`;
+        </nav>` : ""}`;
     }
   </script>
 </body>
