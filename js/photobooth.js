@@ -74,7 +74,7 @@ export function initBooth() {
         <section class="booth-roll" id="booth-roll" data-roll aria-labelledby="booth-roll-title" hidden>
           <div class="booth-roll-head">
             <div>
-              <p class="label">Roll 01 · Seniors ’26</p>
+              <p class="label">Roll 01 · Seniors ’26 – ’27</p>
               <h3 id="booth-roll-title">Senior photos</h3>
             </div>
             <div class="booth-roll-controls">
