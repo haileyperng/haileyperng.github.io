@@ -307,6 +307,7 @@ a.part:hover .spin-hover, a.part:focus-visible .spin-hover { animation-play-stat
 .detail-media { padding: 0 var(--gutter); }
 .detail-media iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
 .detail-body { display: grid; grid-template-columns: minmax(200px, 1fr) 2fr; gap: 40px var(--gutter); padding: 48px var(--gutter); }
+.detail-body.is-single { grid-template-columns: minmax(0, 62ch); }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; align-content: start; }
 .facts dd { font-size: 14px; }
 .prose { max-width: 62ch; font-size: 17px; }

@@ -38,7 +38,6 @@
         <section class="page-head">
           <p class="label"><a href="/film/">Film</a> / ${[f.type, f.year].filter(Boolean).map(esc).join(" · ")}</p>
           <h1>${esc(f.title)}</h1>
-          ${f.logline ? `<p class="page-intro">${esc(f.logline)}</p>` : ""}
         </section>
 
         <div class="detail-media">
@@ -47,9 +46,9 @@
             : `<div class="ph" style="--ar:16/9">Video coming soon</div>`}
         </div>
 
-        <div class="detail-body">
+        <div class="detail-body${(f.synopsis || []).length ? "" : " is-single"}">
           <dl class="facts">
-            ${[["Role", f.role], ["Year", f.year], ["Runtime", f.runtime], ["Format", f.format], ...(f.credits || [])]
+            ${[["Role", f.role], ["Year", f.year], ["Runtime", f.runtime], ["Logline", f.logline], ["Format", f.format], ...(f.credits || [])]
               .filter(([, v]) => v).map(([k, v]) => `<dt class="label">${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}
           </dl>
           <div class="prose">${(f.synopsis || []).map((p) => `<p>${esc(p)}</p>`).join("")}</div>
