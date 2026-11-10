@@ -56,5 +56,67 @@
         "alt": "Daniel sitting on a concrete ledge by a chain-link fence under trees and sky"
       }
     ]
+  },
+  {
+    "id": "anais",
+    "name": "Anais",
+    "year": "2026",
+    "location": "Irvine",
+    "cover": "/assets/seniors/anais-05.jpg",
+    "photos": [
+      {
+        "src": "/assets/seniors/anais-01.jpg",
+        "alt": "Anais in a white dress looking back over her shoulder in a golden field at sunset"
+      },
+      {
+        "src": "/assets/seniors/anais-02.jpg",
+        "alt": "Anais in a white dress standing in tall dry grass with rolling hills behind her"
+      },
+      {
+        "src": "/assets/seniors/anais-03.jpg",
+        "alt": "Black-and-white close-up of cowboy boots and a sombrero held at her side"
+      },
+      {
+        "src": "/assets/seniors/anais-04.jpg",
+        "alt": "Anais among purple thistles and dry grass, a hand in her hair"
+      },
+      {
+        "src": "/assets/seniors/anais-05.jpg",
+        "alt": "Anais in a white dress beside purple thistles in an open field under blue sky"
+      }
+    ]
+  },
+  {
+    "id": "teresa",
+    "name": "Teresa",
+    "year": "2027",
+    "location": "Yorba Regional Park",
+    "cover": "/assets/seniors/teresa-01.jpg",
+    "photos": [
+      {
+        "src": "/assets/seniors/teresa-01.jpg",
+        "alt": "Teresa lying in dry grass in a white dress, holding a sunflower"
+      },
+      {
+        "src": "/assets/seniors/teresa-02.jpg",
+        "alt": "Teresa leaning on a wooden bridge railing over a lake"
+      },
+      {
+        "src": "/assets/seniors/teresa-03.jpg",
+        "alt": "Teresa resting her chin on her hand behind soft blades of grass"
+      },
+      {
+        "src": "/assets/seniors/teresa-04.jpg",
+        "alt": "Teresa sitting at the base of a tree in tall green grass"
+      },
+      {
+        "src": "/assets/seniors/teresa-05.jpg",
+        "alt": "Teresa walking away through tall grass among the trees"
+      },
+      {
+        "src": "/assets/seniors/teresa-06.jpg",
+        "alt": "Teresa holding a bunch of sunflowers, eyes lowered"
+      }
+    ]
   }
 ]
