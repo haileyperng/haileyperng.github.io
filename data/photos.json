@@ -1,62 +1,32 @@
 [
   {
-    "src": null,
-    "alt": "",
-    "aspect": "4 / 5"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "3 / 2"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "4 / 5"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "1 / 1"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "3 / 2"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "4 / 5"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "3 / 4"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "4 / 3"
-  },
-  {
-    "src": null,
-    "alt": "",
-    "aspect": "3 / 4"
-  },
-  {
-    "src": null,
-    "alt": "",
+    "src": "/assets/photography/taiwan-01.jpg",
+    "alt": "A young man with an umbrella on a rainy old street lined with lanterns and shops, Taiwan",
     "aspect": "2 / 3"
   },
   {
-    "src": null,
-    "alt": "",
-    "aspect": "3 / 2"
+    "src": "/assets/photography/taiwan-02.jpg",
+    "alt": "Fishermen working on the decks of red and white fishing boats in a Taiwan harbor",
+    "aspect": "16 / 9"
   },
   {
-    "src": null,
-    "alt": "",
-    "aspect": "4 / 5"
+    "src": "/assets/photography/taiwan-03.jpg",
+    "alt": "A young man with a backpack standing on mossy coastal rocks as waves roll in",
+    "aspect": "16 / 9"
+  },
+  {
+    "src": "/assets/photography/taiwan-04.jpg",
+    "alt": "Fishing boats moored in a harbor beneath a steep green hill",
+    "aspect": "16 / 9"
+  },
+  {
+    "src": "/assets/photography/taiwan-05.jpg",
+    "alt": "Red lanterns glowing along the wooden balconies of a teahouse in Jiufen",
+    "aspect": "2 / 3"
+  },
+  {
+    "src": "/assets/photography/taiwan-07.jpg",
+    "alt": "A vendor serving food behind a glass counter at a night market stall",
+    "aspect": "3 / 2"
   }
 ]
