@@ -12,8 +12,7 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 | `/about/#purpose` | `about/index.html` | "What keeps me charged": energy, goal, purpose (the camera's battery links here) |
 | `/film/` | `film/index.html` | All films, with Grid / List / Explore views and tag filters |
 | `/film/project.html?id=…` | `film/project.html` | One film (template filled from `data/films.json`) |
-| `/photography/` | `photography/index.html` | All photo series, same browsing views |
-| `/photography/series.html?id=…` | `photography/series.html` | One series (template filled from `data/photos.json`) |
+| `/photography/` | `photography/index.html` | One grid of all photos (from `data/photos.json`); click to enlarge |
 | `/about/` | `about/index.html` | Bio, experience, education, recognition, kit |
 | `/contact/` | `contact/index.html` | Email, links, local time |
 | any missing URL | `404.html` | Not-found page |
@@ -28,8 +27,8 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
   `SECTIONS` sets which part links where and what its callout says; `STEPS` is the Build-mode checklist
 - `js/photobooth.js`: the Photo Booth window. Photos stay in the visitor's browser; nothing is uploaded
 - `js/camera.js`: 2D drawing of the camera, used automatically if a browser can't run 3D
-- `js/discovery.js`: Grid / List / Explore views, filters and shuffle for Film and Photography
-- `js/lightbox.js`: full-size photo viewer on series pages
+- `js/discovery.js`: Grid / List / Explore views, filters and shuffle for Film
+- `js/lightbox.js`: full-size photo viewer on the Photography page
 - `js/data.js`: helpers for loading the JSON content
 
 ## Adding work
@@ -38,14 +37,14 @@ Plain HTML, CSS and JavaScript: no build step. Push to `main` and the site updat
 Set `embed` to a Vimeo/YouTube embed URL, e.g. `https://player.vimeo.com/video/123456`,
 and `thumbnail` to an image path like `/assets/film/my-film.jpg`.
 
-**A photo series:** add an entry to `data/photos.json`. Put images in `assets/photography/`
-and list them under `images` with `src`, `alt` and `aspect` (e.g. `"4 / 5"`).
+**Photos:** add an entry to `data/photos.json` for each photo, in the order they should appear.
+Put images in `assets/photography/` and give each `src`, `alt` and `aspect` (e.g. `"4 / 5"`).
 
 **Senior photos:** edit `data/portraits.json`. Each senior is one exposure on the roll in the Photo Booth.
 Set `cover` to the photo shown on the film and list every photo from the session under `photos`,
 with paths like `/assets/seniors/adriana-01.jpg`. Without a `cover`, the first photo is used.
 
-Tags in either file become the filter buttons automatically.
+Tags in `data/films.json` become the filter buttons automatically.
 
 ## Previewing locally
 

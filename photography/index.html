@@ -19,41 +19,25 @@
     <section class="page-head">
       <p class="label">02 · Aperture</p>
       <h1>Photography</h1>
-      <p class="page-intro">Placeholder intro: a sentence or two about your photography. Series come from data/photos.json.</p>
+      <p class="page-intro">Placeholder intro: a sentence or two about your photography. Photos come from data/photos.json.</p>
     </section>
 
-    <section class="discovery" data-discovery>
-      <div class="discovery-controls">
-        <div class="seg" data-filters aria-label="Filter by subject"></div>
-        <div class="seg">
-          <span class="label" data-count></span>
-          <div class="seg" data-views aria-label="View">
-            <button class="chip" data-view="grid">Grid</button>
-            <button class="chip" data-view="list">List</button>
-            <button class="chip" data-view="scatter">Explore</button>
-          </div>
-          <button class="chip" data-shuffle>Shuffle</button>
-        </div>
-      </div>
-      <div class="discovery-stage" data-stage></div>
-    </section>
+    <div class="masonry photo-grid" data-gallery></div>
   </main>
 
   <footer class="site-footer" data-site-footer></footer>
 
   <script type="module">
-    import { loadJSON } from "/js/data.js";
-    import { initDiscovery } from "/js/discovery.js";
+    import { loadJSON, esc, mediaHTML } from "/js/data.js";
+    import { initLightbox } from "/js/lightbox.js";
 
-    const series = await loadJSON("/data/photos.json");
-    initDiscovery({
-      root: document.querySelector("[data-discovery]"),
-      items: series,
-      hrefFor: (s) => `/photography/series.html?id=${encodeURIComponent(s.id)}`,
-      metaFor: (s) => `${s.location} · ${s.camera}`,
-      cursorLabel: "View",
-      storageKey: "view:photography",
-    });
+    // One grid of every photo, in the order listed in data/photos.json
+    const photos = await loadJSON("/data/photos.json");
+    const grid = document.querySelector("[data-gallery]");
+    grid.innerHTML = photos.map((p, n) => p.src
+      ? `<a href="${esc(p.src)}" data-lightbox data-alt="${esc(p.alt)}" data-cursor-label="Open">${mediaHTML(p)}</a>`
+      : mediaHTML({ aspect: p.aspect, label: `Photo ${n + 1}` })).join("");
+    initLightbox(grid);
   </script>
 </body>
 </html>
