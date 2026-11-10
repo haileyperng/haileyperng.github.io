@@ -4,31 +4,23 @@
     "name": "Adriana",
     "year": "2026",
     "location": "123 Farms",
-    "cover": null,
+    "cover": "/assets/seniors/adriana-04.jpg",
     "photos": [
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/adriana-01.jpg",
+        "alt": "Adriana in a white dress holding dried lavender in a field at golden hour"
       },
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/adriana-02.jpg",
+        "alt": "Close portrait of Adriana among lavender and small warm lights at dusk"
       },
       {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/adriana-03.jpg",
+        "alt": "Adriana in a white dress walking through a field under a pink sky"
       },
       {
-        "src": null,
-        "alt": ""
-      },
-      {
-        "src": null,
-        "alt": ""
-      },
-      {
-        "src": null,
-        "alt": ""
+        "src": "/assets/seniors/adriana-04.jpg",
+        "alt": "Adriana sitting among lavender bushes and string lights, holding a lavender bundle"
       }
     ]
   },
