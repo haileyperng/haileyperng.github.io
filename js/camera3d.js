@@ -19,7 +19,7 @@ export const SECTIONS = {
   lens:   { href: "/film/",        num: "01", part: "Lens · E-mount",  title: "Film",        blurb: "Moving images" },
   screen: { href: "/photography/", num: "02", part: "Vari-angle LCD",  title: "Photography", blurb: "Still frames" },
   evf:    { href: "/about/",       num: "03", part: "Viewfinder",      title: "About",       blurb: "How I see" },
-  flash:  { href: "#booth",        num: "04", part: "Flash · hot shoe", title: "Photo Booth", blurb: "Portraits & bookings", booth: true },
+  flash:  { href: "#booth",        num: "04", part: "Flash · hot shoe", title: "Senior Photos", blurb: "Portraits & bookings", booth: true },
   battery: { href: "/about/#purpose", num: "05", part: "Battery",       title: "Purpose",     blurb: "What keeps me charged" },
 };
 
